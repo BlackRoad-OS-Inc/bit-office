@@ -4,6 +4,8 @@ Your very own AI dev shop — a pixel-art office staffed with AI coders who actu
 
 Assign tasks, sit back, sip your coffee, and watch your AI employees grind away like it's crunch week. Every. Single. Day.
 
+<video src="https://github.com/user-attachments/assets/2a0afe2d-25f7-49a4-8790-888ec1bd99c5" controls width="100%"></video>
+
 ## Quick Start
 
 ```bash
@@ -11,10 +13,6 @@ npx bit-office
 ```
 
 That's it. Opens a browser UI, auto-detects installed AI backends, generates a pair code for your phone.
-
-## Demo
-
-<video src="https://github.com/user-attachments/assets/2a0afe2d-25f7-49a4-8790-888ec1bd99c5" controls width="100%"></video>
 
 ## Features
 
