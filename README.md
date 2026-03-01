@@ -3,7 +3,7 @@
 A pixel-art office where you hire AI agents, assign them projects, and watch them actually work.
 Leaders delegate, teammates debate, code gets written — all while you supervise like a tiny AI startup CEO.
 
-<video src="https://github.com/user-attachments/assets/2a0afe2d-25f7-49a4-8790-888ec1bd99c5" controls width="100%"></video>
+<video src="https://github.com/user-attachments/assets/8932a1d3-c7cf-4e30-a5ef-c023bf52226a" controls width="100%"></video>
 
 ## Quick Start
 
