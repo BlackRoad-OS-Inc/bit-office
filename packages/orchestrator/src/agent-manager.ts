@@ -20,7 +20,8 @@ export class AgentManager {
     const lines: string[] = [];
     for (const session of this.agents.values()) {
       const lead = this.isTeamLead(session.agentId) ? " (Team Lead)" : "";
-      const result = session.lastResult ? ` — ${session.lastResult}` : "";
+      const raw = session.lastResult ?? "";
+      const result = raw ? ` — ${raw.length > 100 ? raw.slice(0, 100) + "…" : raw}` : "";
       lines.push(`- ${session.name} (${session.role}) [${session.status}]${lead}${result}`);
     }
     return lines.join("\n");

@@ -213,7 +213,8 @@ export class AgentSession {
         const useInitial = phaseOverride === "execute" || !this.hasHistory;
         fullPrompt = this._renderPrompt(useInitial ? "leader-initial" : "leader-continue", templateVars);
       } else {
-        fullPrompt = this._renderPrompt(this.hasHistory ? "worker-continue" : "worker-initial", templateVars);
+        const workerInitial = this.role.toLowerCase().includes("review") ? "worker-reviewer-initial" : "worker-initial";
+        fullPrompt = this._renderPrompt(this.hasHistory ? "worker-continue" : workerInitial, templateVars);
       }
       const fullAccess = this.sandboxMode === "full";
       const verbose = !!process.env.DEBUG;
