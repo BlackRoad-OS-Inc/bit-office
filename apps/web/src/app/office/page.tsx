@@ -1060,14 +1060,14 @@ function AccordionHeader({
       style={{
         display: "flex", alignItems: "center", gap: 8,
         width: "100%", padding: "10px 12px",
-        backgroundColor: isExpanded ? color + "30" : color + "18",
+        backgroundColor: "transparent",
         border: "none", borderBottom: "1px solid #2e2448",
-        borderLeft: `3px solid ${isExpanded ? color : color + "40"}`,
+        borderLeft: `2px solid ${isExpanded ? color : color + "60"}`,
         cursor: "pointer", textAlign: "left",
-        transition: "background-color 0.15s, border-color 0.15s",
+        transition: "border-color 0.15s",
       }}
-      onMouseEnter={(e) => { if (!isExpanded) e.currentTarget.style.backgroundColor = color + "25"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = isExpanded ? color + "30" : color + "18"; }}
+      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.03)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
     >
       <span style={{ fontSize: 10, color: isExpanded ? color : "#7a6858", width: 12, textAlign: "center", flexShrink: 0 }}>
         {isExpanded ? "\u25BC" : "\u25B6"}
@@ -1079,8 +1079,8 @@ function AccordionHeader({
       {count > 0 && (
         <span style={{
           fontSize: 9, padding: "1px 5px",
-          backgroundColor: color + "15", color,
-          border: `1px solid ${color}30`, fontFamily: "monospace",
+          backgroundColor: "transparent", color: isExpanded ? color : "#9a8868",
+          border: `1px solid ${isExpanded ? color + "40" : "#3e3458"}`, fontFamily: "monospace",
         }}>{count}</span>
       )}
       <div style={{ marginLeft: "auto", display: "flex", gap: 4, alignItems: "center" }}
