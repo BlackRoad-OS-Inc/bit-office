@@ -1207,8 +1207,9 @@ function HireModal({ agentDefs, onHire, onCreate, onEdit, onDelete, onClose, ass
   const [selectedBackend, setSelectedBackend] = useState("claude");
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
-  const builtinAgents = agentDefs.filter((a) => a.isBuiltin);
-  const customAgents = agentDefs.filter((a) => !a.isBuiltin);
+  // Leaders can only work in teams, not as solo agents
+  const builtinAgents = agentDefs.filter((a) => a.isBuiltin && a.teamRole !== "leader");
+  const customAgents = agentDefs.filter((a) => !a.isBuiltin && a.teamRole !== "leader");
 
   return (
     <div

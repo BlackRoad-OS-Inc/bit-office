@@ -201,6 +201,7 @@ export class AgentSession {
         teamRoster: teamContext ?? "",
         originalTask,
         prompt,
+        soloHint: this.teamId ? "" : "- You are a SOLO developer. Do NOT delegate, assign tasks, or mention other team members. Do ALL the work yourself.",
       };
       let fullPrompt: string;
       if (this._isTeamLead && phaseOverride && ["create", "design", "complete"].includes(phaseOverride)) {
@@ -280,7 +281,7 @@ export class AgentSession {
         for (const line of lines) {
           const trimmed = line.trim();
           console.log(`[Agent ${this.name}] ${trimmed.slice(0, 200)}`);
-          const match = trimmed.match(DELEGATION_RE);
+          const match = this._isTeamLead ? trimmed.match(DELEGATION_RE) : null;
           if (match && this.onDelegation) {
             const [, targetName, delegatedPrompt] = match;
             console.log(`[Delegation detected] ${this.name} -> @${targetName}: ${delegatedPrompt.slice(0, 60)}`);

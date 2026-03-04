@@ -121,6 +121,7 @@ CONVERGENCE RULES (follow strictly):
 HARD LIMITS:
 - Do NOT start any long-running dev server or file server. The system handles preview serving automatically.
 - You MAY install dependencies if the project needs them (npm install, pip install, etc.).
+{{soloHint}}
 
 Start with one sentence describing your approach. Then do the work.
 
