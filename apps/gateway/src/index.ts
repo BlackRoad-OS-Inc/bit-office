@@ -44,16 +44,18 @@ function publishTeamPhase(teamId: string, phase: "create" | "design" | "execute"
 
 /** Snapshot current team state to disk */
 function persistTeamState() {
-  const agents: PersistedAgent[] = orc.getAllAgents().map(a => ({
-    agentId: a.agentId,
-    name: a.name,
-    role: a.role,
-    personality: a.personality,
-    backend: a.backend,
-    palette: a.palette,
-    teamId: a.teamId,
-    isTeamLead: orc.isTeamLead(a.agentId),
-  }));
+  const agents: PersistedAgent[] = orc.getAllAgents()
+    .filter(a => a.teamId || orc.isTeamLead(a.agentId))
+    .map(a => ({
+      agentId: a.agentId,
+      name: a.name,
+      role: a.role,
+      personality: a.personality,
+      backend: a.backend,
+      palette: a.palette,
+      teamId: a.teamId,
+      isTeamLead: orc.isTeamLead(a.agentId),
+    }));
 
   let team: TeamState["team"] = null;
   for (const [teamId, tp] of teamPhases) {
@@ -300,6 +302,7 @@ function handleCommand(parsed: Command, meta: CommandMeta) {
         personality: parsed.personality,
         backend: backendId,
         palette: parsed.palette,
+        teamId: parsed.teamId,
       });
       persistTeamState();
       break;
@@ -325,6 +328,7 @@ function handleCommand(parsed: Command, meta: CommandMeta) {
           role: parsed.role ?? "",
           personality: parsed.personality,
           backend: backendId,
+          teamId: parsed.teamId,
           resumeHistory: true,
         });
         agent = orc.getAgent(parsed.agentId);
@@ -431,6 +435,15 @@ function handleCommand(parsed: Command, meta: CommandMeta) {
       const { leadId, memberIds, backends } = parsed;
       const allIds = [leadId, ...memberIds.filter(id => id !== leadId)];
       console.log(`[Gateway] Creating team: lead=${leadId}, members=${memberIds.join(",")}`);
+
+      // Clean up any orphan agents (no teamId) before creating team to avoid duplicates
+      for (const agent of orc.getAllAgents()) {
+        if (!agent.teamId && !agent.isTeamLead) {
+          console.log(`[Gateway] Removing orphan agent "${agent.name}" before team creation`);
+          orc.removeAgent(agent.agentId);
+        }
+      }
+
       let leadAgentId: string | null = null;
       const teamId = `team-${nanoid(6)}`;
 

@@ -11,6 +11,7 @@ export const RunTaskCommand = z.object({
   role: z.string().optional(),
   personality: z.string().optional(),
   backend: z.string().optional(),
+  teamId: z.string().optional(),
 });
 
 export const ApprovalDecisionCommand = z.object({
@@ -37,6 +38,7 @@ export const CreateAgentCommand = z.object({
   palette: z.number().optional(),
   personality: z.string().optional(),
   backend: z.string().optional(),
+  teamId: z.string().optional(),
 });
 
 export const FireAgentCommand = z.object({

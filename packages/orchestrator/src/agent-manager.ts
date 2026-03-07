@@ -19,6 +19,8 @@ export class AgentManager {
   getTeamRoster(): string {
     const lines: string[] = [];
     for (const session of this.agents.values()) {
+      // Only list agents that belong to a team (skip orphan/solo agents)
+      if (!session.teamId && !this.isTeamLead(session.agentId)) continue;
       const lead = this.isTeamLead(session.agentId) ? " (Team Lead)" : "";
       const raw = session.lastResult ?? "";
       const result = raw ? ` — ${raw.length > 100 ? raw.slice(0, 100) + "…" : raw}` : "";
@@ -28,13 +30,15 @@ export class AgentManager {
   }
 
   getTeamMembers(): Array<{ name: string; role: string; status: string; isLead: boolean; lastResult: string | null }> {
-    return Array.from(this.agents.values()).map(s => ({
-      name: s.name,
-      role: s.role,
-      status: s.status,
-      isLead: this.isTeamLead(s.agentId),
-      lastResult: s.lastResult,
-    }));
+    return Array.from(this.agents.values())
+      .filter(s => s.teamId || this.isTeamLead(s.agentId))
+      .map(s => ({
+        name: s.name,
+        role: s.role,
+        status: s.status,
+        isLead: this.isTeamLead(s.agentId),
+        lastResult: s.lastResult,
+      }));
   }
 
   add(session: AgentSession): void {
@@ -62,11 +66,15 @@ export class AgentManager {
   }
 
   findByName(name: string): AgentSession | undefined {
+    const lower = name.toLowerCase();
+    // Prefer agents that belong to the current team
+    let fallback: AgentSession | undefined;
     for (const session of this.agents.values()) {
-      if (session.name.toLowerCase() === name.toLowerCase()) {
-        return session;
+      if (session.name.toLowerCase() === lower) {
+        if (session.teamId || this.isTeamLead(session.agentId)) return session;
+        if (!fallback) fallback = session;
       }
     }
-    return undefined;
+    return fallback;
   }
 }

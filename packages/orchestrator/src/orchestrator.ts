@@ -305,7 +305,7 @@ export class Orchestrator extends EventEmitter<OrchestratorEventMap> {
   getAgent(agentId: string) {
     const s = this.agentManager.get(agentId);
     if (!s) return undefined;
-    return { agentId: s.agentId, name: s.name, role: s.role, status: s.status, palette: s.palette, backend: s.backend.id, pid: s.pid };
+    return { agentId: s.agentId, name: s.name, role: s.role, status: s.status, palette: s.palette, backend: s.backend.id, pid: s.pid, teamId: s.teamId };
   }
 
   getAllAgents() {
