@@ -585,6 +585,7 @@ export function renderFrame(
   layoutCols?: number,
   layoutRows?: number,
   editor?: EditorRenderState,
+  backgroundImage?: HTMLImageElement | null,
 ): { offsetX: number; offsetY: number } {
   // Clear
   ctx.clearRect(0, 0, canvasWidth, canvasHeight)
@@ -598,11 +599,21 @@ export function renderFrame(
   const offsetX = Math.floor((canvasWidth - mapW) / 2) + Math.round(panX)
   const offsetY = Math.floor((canvasHeight - mapH) / 2) + Math.round(panY)
 
-  // Draw tiles
-  renderTileGrid(ctx, tileMap, offsetX, offsetY, zoom, tileColors, layoutCols)
+  // Draw background image if available (from room ZIP import)
+  if (backgroundImage) {
+    ctx.save()
+    ctx.imageSmoothingEnabled = false
+    ctx.drawImage(backgroundImage, offsetX, offsetY, mapW, mapH)
+    ctx.restore()
+  }
 
-  // Build wall instances for z-sorting
-  const wallInstances = hasWallSprites()
+  // Draw tiles (skip floor rendering when background image is present)
+  if (!backgroundImage) {
+    renderTileGrid(ctx, tileMap, offsetX, offsetY, zoom, tileColors, layoutCols)
+  }
+
+  // Build wall instances for z-sorting (skip when background image provides wall visuals)
+  const wallInstances = !backgroundImage && hasWallSprites()
     ? getWallInstances(tileMap, tileColors, layoutCols)
     : []
   const allFurniture = wallInstances.length > 0

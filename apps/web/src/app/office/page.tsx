@@ -13,7 +13,7 @@ import { getCharacterThumbnail } from "@/components/office/sprites/spriteData";
 import { OfficeState } from "@/components/office/engine/officeState";
 import { EditorState } from "@/components/office/editor/editorState";
 import { EditTool } from "@/components/office/types";
-import { ZOOM_MIN, ZOOM_MAX } from "@/components/office/constants";
+import { TILE_SIZE, ZOOM_MIN, ZOOM_MAX } from "@/components/office/constants";
 import { useEditorActions, loadLayoutFromStorage, saveLayoutToStorage } from "@/hooks/useEditorActions";
 import { useEditorKeyboard } from "@/hooks/useEditorKeyboard";
 import { migrateLayoutColors } from "@/components/office/layout/layoutSerializer";
@@ -1827,6 +1827,27 @@ export default function OfficePage() {
     handleSelectedFurnitureColorChange,
   } = useEditorActions(editorRef, officeStateRef, onLayoutChange);
 
+  const handleImportRoomZip = useCallback((layout: import('@/components/office/types').OfficeLayout, backgroundImage: HTMLImageElement | null) => {
+    const office = officeStateRef.current;
+    if (!office) return;
+    office.setBackgroundImage(backgroundImage);
+    handleImportLayout(layout);
+    // Auto-fit zoom to fill viewport (allow non-integer for smooth fit)
+    const canvas = document.querySelector('canvas');
+    if (canvas) {
+      const parent = canvas.parentElement;
+      if (parent) {
+        const viewW = parent.clientWidth;
+        const viewH = parent.clientHeight;
+        const mapW = layout.cols * TILE_SIZE;
+        const mapH = layout.rows * TILE_SIZE;
+        const fitZoom = Math.min(viewW / mapW, viewH / mapH);
+        zoomRef.current = Math.max(ZOOM_MIN, Math.min(fitZoom, ZOOM_MAX));
+      }
+    }
+    panRef.current = { x: 0, y: 0 };
+  }, [officeStateRef, handleImportLayout, zoomRef, panRef]);
+
   const toggleEditMode = useCallback(() => {
     setEditMode((prev) => {
       const next = !prev;
@@ -3417,6 +3438,7 @@ export default function OfficePage() {
           onClose={() => setShowSettings(false)}
           layout={officeStateRef.current.layout}
           onImportLayout={handleImportLayout}
+          onImportRoomZip={handleImportRoomZip}
           soundEnabled={soundEnabled}
           onSoundEnabledChange={setSoundEnabled}
         />

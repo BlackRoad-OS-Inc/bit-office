@@ -217,6 +217,7 @@ export default function PixelOfficeScene({
           officeState.layout.cols,
           officeState.layout.rows,
           editorRenderState,
+          officeState.backgroundImage,
         );
         lastOffsetsRef.current = result;
         editorRenderRef.current = editorRenderState ?? null;

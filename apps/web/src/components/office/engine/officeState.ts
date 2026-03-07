@@ -36,6 +36,7 @@ import type { AgentStatus } from '@office/shared'
  */
 export class OfficeState {
   layout: OfficeLayout
+  backgroundImage: HTMLImageElement | null = null
   tileMap: TileTypeVal[][]
   seats: Map<string, Seat>
   blockedTiles: Set<string>
@@ -57,6 +58,11 @@ export class OfficeState {
     this.blockedTiles = getBlockedTiles(this.layout.furniture)
     this.furniture = layoutToFurnitureInstances(this.layout.furniture)
     this.walkableTiles = getWalkableTiles(this.tileMap, this.blockedTiles)
+  }
+
+  /** Set background image (from room ZIP import) */
+  setBackgroundImage(img: HTMLImageElement | null): void {
+    this.backgroundImage = img
   }
 
   /** Hot-replace layout: rebuild tileMap, seats, furniture, reassign characters */

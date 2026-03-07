@@ -3,12 +3,14 @@
 import { useState, useRef } from 'react'
 import type { OfficeLayout } from '../types'
 import { serializeLayout, deserializeLayout } from '../layout/layoutSerializer'
+import { loadRoomZip } from '../layout/roomZipLoader'
 
 interface SettingsModalProps {
   isOpen: boolean
   onClose: () => void
   layout: OfficeLayout
   onImportLayout: (layout: OfficeLayout) => void
+  onImportRoomZip?: (layout: OfficeLayout, backgroundImage: HTMLImageElement | null) => void
   soundEnabled: boolean
   onSoundEnabledChange: (enabled: boolean) => void
 }
@@ -33,11 +35,13 @@ export default function SettingsModal({
   onClose,
   layout,
   onImportLayout,
+  onImportRoomZip,
   soundEnabled,
   onSoundEnabledChange,
 }: SettingsModalProps) {
   const [hovered, setHovered] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const roomZipInputRef = useRef<HTMLInputElement>(null)
 
   if (!isOpen) return null
 
@@ -73,6 +77,21 @@ export default function SettingsModal({
     }
     reader.readAsText(file)
     e.target.value = ''
+  }
+
+  const handleImportRoomZip = () => {
+    roomZipInputRef.current?.click()
+  }
+
+  const handleRoomZipChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+    const result = await loadRoomZip(file)
+    if (result && onImportRoomZip) {
+      onImportRoomZip(result.layout, result.backgroundImage)
+      onClose()
+    }
   }
 
   const toggleSound = () => {
@@ -159,11 +178,27 @@ export default function SettingsModal({
             background: hovered === 'import' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
           }}
         >Import Layout</button>
+        <button
+          onClick={handleImportRoomZip}
+          onMouseEnter={() => setHovered('room-zip')}
+          onMouseLeave={() => setHovered(null)}
+          style={{
+            ...menuItemBase,
+            background: hovered === 'room-zip' ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+          }}
+        >Import Room (.zip)</button>
         <input
           ref={fileInputRef}
           type="file"
           accept=".json"
           onChange={handleFileChange}
+          style={{ display: 'none' }}
+        />
+        <input
+          ref={roomZipInputRef}
+          type="file"
+          accept=".zip"
+          onChange={handleRoomZipChange}
           style={{ display: 'none' }}
         />
         <button

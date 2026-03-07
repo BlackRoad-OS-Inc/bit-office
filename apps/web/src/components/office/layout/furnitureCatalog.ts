@@ -209,6 +209,32 @@ export function getCatalogByCategory(category: FurnitureCategory): CatalogEntryW
   return FURNITURE_CATALOG.filter((e) => e.category === category)
 }
 
+/**
+ * Register custom sprites (from room ZIP imports) into the catalog.
+ * These use the 'misc' category and are not part of the built-in tileset.
+ */
+export function registerCustomSprites(
+  sprites: Map<string, { sprite: SpriteData; footprintW: number; footprintH: number; label: string }>,
+): void {
+  for (const [type, data] of sprites) {
+    const existing = FURNITURE_CATALOG.findIndex((e) => e.type === type)
+    const entry: CatalogEntryWithCategory = {
+      type,
+      label: data.label,
+      footprintW: data.footprintW,
+      footprintH: data.footprintH,
+      sprite: data.sprite,
+      isDesk: false,
+      category: 'misc',
+    }
+    if (existing >= 0) {
+      FURNITURE_CATALOG[existing] = entry
+    } else {
+      FURNITURE_CATALOG.push(entry)
+    }
+  }
+}
+
 /** Get list of active (non-empty) furniture categories in the catalog */
 export function getActiveCategories(): Array<{ id: FurnitureCategory; label: string }> {
   const activeCats = new Set<FurnitureCategory>()
