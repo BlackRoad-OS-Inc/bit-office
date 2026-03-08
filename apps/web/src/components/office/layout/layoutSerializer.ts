@@ -164,10 +164,6 @@ export function layoutToSeats(furniture: PlacedFurniture[]): Map<string, Seat> {
     }
   }
 
-  console.log('[layoutToSeats] furniture count:', furniture.length)
-  console.log('[layoutToSeats] deskTiles:', [...deskTiles.keys()])
-  console.log('[layoutToSeats] chairTiles:', [...chairTiles.entries()].map(([k, v]) => `${k} → ${v.item.type} facing=${v.facing}`))
-
   // Search radius: D and C can be up to SEARCH_RADIUS cells apart
   // (furniture sprites often span multiple cells between D and C)
   const SEARCH_RADIUS = 3
@@ -204,7 +200,6 @@ export function layoutToSeats(furniture: PlacedFurniture[]): Map<string, Seat> {
 
     if (bestChair) {
       usedChairs.add(bestChair.key)
-      console.log(`[layoutToSeats] desk ${deskKey} matched chair ${bestChair.key} type=${bestChair.item.type} facingDesk=${bestChair.facingDesk} dist=${bestChair.dist}`)
       seats.set(bestChair.item.uid, {
         uid: bestChair.item.uid,
         seatCol: bestChair.item.col,
@@ -214,7 +209,6 @@ export function layoutToSeats(furniture: PlacedFurniture[]): Map<string, Seat> {
       })
     } else {
       // Desk with no nearby chair → standing work seat at desk position
-      console.log(`[layoutToSeats] desk ${deskKey} has no nearby chair, creating standing seat`)
       seats.set(deskItem.uid, {
         uid: deskItem.uid,
         seatCol: dCol,
@@ -238,10 +232,6 @@ export function layoutToSeats(furniture: PlacedFurniture[]): Map<string, Seat> {
       isRest: true,
     })
   }
-
-  const workSeats = [...seats.values()].filter(s => !s.isRest).length
-  const restSeats = [...seats.values()].filter(s => s.isRest).length
-  console.log(`[layoutToSeats] total seats: ${seats.size} (work: ${workSeats}, rest: ${restSeats})`)
 
   return seats
 }

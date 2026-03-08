@@ -1860,6 +1860,7 @@ export default function OfficePage() {
   const [currentOfficeId, setCurrentOfficeId] = useState<string | null>(null);
   const [showEditorControls, setShowEditorControls] = useState(false);
   const [testActive, setTestActive] = useState(false);
+  const [mapAspect, setMapAspect] = useState(1); // cols/rows ratio for scene width
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [, forceUpdate] = useState(0);
   const editorRef = useRef(new EditorState());
@@ -1937,26 +1938,27 @@ export default function OfficePage() {
     handleSelectedFurnitureColorChange,
   } = useEditorActions(editorRef, officeStateRef, onLayoutChange);
 
+  /** Fit zoom for a given layout — renderer already centers the map, so just reset pan */
+  const fitZoomToLayout = useCallback((layout: import('@/components/office/types').OfficeLayout) => {
+    const canvas = document.querySelector('canvas');
+    if (!canvas?.parentElement) return;
+    const viewW = canvas.parentElement.clientWidth;
+    const viewH = canvas.parentElement.clientHeight;
+    const mapW = layout.cols * TILE_SIZE;
+    const mapH = layout.rows * TILE_SIZE;
+    zoomRef.current = Math.max(ZOOM_MIN, Math.min(viewW / mapW, viewH / mapH, ZOOM_MAX));
+    panRef.current = { x: 0, y: 0 };
+  }, [zoomRef, panRef]);
+
   const handleImportRoomZip = useCallback((layout: import('@/components/office/types').OfficeLayout, backgroundImage: HTMLImageElement | null) => {
     const office = officeStateRef.current;
     if (!office) return;
     office.setBackgroundImage(backgroundImage);
     handleImportLayout(layout);
-    // Auto-fit zoom to fill viewport (allow non-integer for smooth fit)
-    const canvas = document.querySelector('canvas');
-    if (canvas) {
-      const parent = canvas.parentElement;
-      if (parent) {
-        const viewW = parent.clientWidth;
-        const viewH = parent.clientHeight;
-        const mapW = layout.cols * TILE_SIZE;
-        const mapH = layout.rows * TILE_SIZE;
-        const fitZoom = Math.min(viewW / mapW, viewH / mapH);
-        zoomRef.current = Math.max(ZOOM_MIN, Math.min(fitZoom, ZOOM_MAX));
-      }
-    }
-    panRef.current = { x: 0, y: 0 };
-  }, [officeStateRef, handleImportLayout, zoomRef, panRef]);
+    setMapAspect(layout.cols / layout.rows);
+    // Recalc zoom after React re-render + container resize settles
+    requestAnimationFrame(() => requestAnimationFrame(() => fitZoomToLayout(layout)));
+  }, [officeStateRef, handleImportLayout, fitZoomToLayout]);
 
   const toggleEditMode = useCallback(() => {
     setEditMode((prev) => {
@@ -1989,17 +1991,9 @@ export default function OfficePage() {
           office.setBackgroundImage(result.backgroundImage);
           handleImportLayout(result.layout);
           setCurrentOfficeId(result.officeId);
-          // Auto-fit zoom
-          const canvas = document.querySelector('canvas');
-          if (canvas?.parentElement) {
-            const viewW = canvas.parentElement.clientWidth;
-            const viewH = canvas.parentElement.clientHeight;
-            const mapW = result.layout.cols * TILE_SIZE;
-            const mapH = result.layout.rows * TILE_SIZE;
-            const fitZoom = Math.min(viewW / mapW, viewH / mapH);
-            zoomRef.current = Math.max(ZOOM_MIN, Math.min(fitZoom, ZOOM_MAX));
-          }
-          panRef.current = { x: 0, y: 0 };
+          setMapAspect(result.layout.cols / result.layout.rows);
+          // Recalc zoom after React re-render + container resize settles
+          requestAnimationFrame(() => requestAnimationFrame(() => fitZoomToLayout(result.layout)));
         }
       } catch (err) {
         console.warn('[OfficePage] Failed to load default office zip:', err);
@@ -2266,13 +2260,12 @@ export default function OfficePage() {
     setShowShareMenu(false);
   }, []);
 
-  const SIDEBAR_W = 340;
   const isChatExpanded = chatOpen && selectedAgent !== null;
 
   return (
     <div style={{ height: "100vh", width: "100vw", position: "relative", overflow: "hidden", display: "flex" }}>
-      {/* Game Scene — square, fit to viewport height */}
-      <div style={{ width: isMobile ? "100%" : "100vh", flexShrink: 0, position: "relative", minWidth: 0 }}>
+      {/* Game Scene — width = viewport height × map aspect ratio, sidebar gets the rest */}
+      <div style={{ width: `calc(100vh * ${mapAspect})`, maxWidth: "100vw", flexShrink: 1, position: "relative", minWidth: 0 }}>
         <PixelOfficeScene
           onAdapterReady={handleAdapterReady}
           onAgentClick={handleAgentClick}
@@ -2449,11 +2442,11 @@ export default function OfficePage() {
 
       </div>
 
-      {/* ── Right Sidebar (desktop only) ── */}
+      {/* ── Right Sidebar (desktop only) — takes remaining space after game scene ── */}
       {!isMobile && (
         <div style={{
           flex: 1,
-          minWidth: 280,
+          minWidth: 260,
           height: "100vh",
           backgroundColor: "#1e1a30",
           borderLeft: "2px solid #3d2e54",

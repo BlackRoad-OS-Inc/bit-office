@@ -239,13 +239,9 @@ export async function loadRoomZip(file: File): Promise<RoomZipResult | null> {
       }
     }
 
-    console.log('[roomZipLoader] Registered oriented catalog entries for:', [...neededBaseTypes])
     for (const obj of roomJson.objects) {
       const orientSuffix = rotationToOrientation(obj.rotation ?? 0)
-      // Always use suffixed type so orientation is preserved
       const resolvedType = `${obj.type}-${orientSuffix}`
-      const entry = getCatalogEntry(resolvedType)
-      console.log(`[roomZipLoader] object ${obj.id}: type=${obj.type} rot=${obj.rotation} → ${resolvedType} (isDesk=${entry?.isDesk}, category=${entry?.category}, orientation=${entry?.orientation})`)
 
       furniture.push({
         uid: obj.id,

@@ -51,7 +51,6 @@ export default function PixelOfficeScene({
 }: PixelOfficeSceneProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [assetsLoaded, setAssetsLoaded] = useState(false);
-  const loadedLayoutRef = useRef<import('../types').OfficeLayout | null>(null);
 
   // Stable callback refs
   const onAgentClickRef = useRef(onAgentClick);
@@ -73,7 +72,7 @@ export default function PixelOfficeScene({
     if (!office) return 4;
     const mapW = office.layout.cols * TILE_SIZE;
     const mapH = office.layout.rows * TILE_SIZE;
-    return Math.max(ZOOM_MIN, Math.floor(Math.min(viewW / mapW, viewH / mapH)));
+    return Math.max(ZOOM_MIN, Math.min(viewW / mapW, viewH / mapH));
   }, [officeStateRef]);
 
   // Resize handler
@@ -93,7 +92,7 @@ export default function PixelOfficeScene({
     if (ctx) {
       ctx.scale(dpr, dpr);
     }
-    // Auto-fit zoom on resize
+    // Auto-fit zoom — renderer already centers the map, so reset pan to origin
     zoomRef.current = calcFitZoom(w, h);
     panRef.current = { x: 0, y: 0 };
   }, [calcFitZoom, zoomRef, panRef]);
@@ -105,7 +104,6 @@ export default function PixelOfficeScene({
       .then((assets) => {
         if (cancelled) return;
         registerTilesetSprites(assets.tilesetSprites);
-        loadedLayoutRef.current = assets.layout;
         setAssetsLoaded(true);
       })
       .catch((err) => {
@@ -131,9 +129,11 @@ export default function PixelOfficeScene({
     // Now that OfficeState exists, notify parent to load office zip
     onAssetsLoadedRef.current?.();
 
-    // Setup canvas size
+    // Setup canvas size — use ResizeObserver to react to container size changes
+    // (window resize, sidebar open/close, etc.)
     resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
+    const ro = new ResizeObserver(() => resizeCanvas());
+    if (canvas.parentElement) ro.observe(canvas.parentElement);
 
     // Start game loop
     const dpr = window.devicePixelRatio || 1;
@@ -236,7 +236,7 @@ export default function PixelOfficeScene({
     return () => {
       adapter.dispose();
       officeStateRef.current = null;
-      window.removeEventListener("resize", resizeCanvas);
+      ro.disconnect();
     };
   }, [assetsLoaded, resizeCanvas, officeStateRef, zoomRef, panRef, editorRef, onAdapterReady]);
 
