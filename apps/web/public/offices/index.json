@@ -1,0 +1,23 @@
+[
+  {
+    "id": "default",
+    "name": "Modern Office",
+    "file": "default.zip"
+  },
+  {
+    "id": "Nostalgic",
+    "name": "Nostalgic Office",
+    "file": "Nostalgic.zip"
+  }
+  ,
+  {
+    "id": "Cute Whimsical",
+    "name": "Cute Whimsical Office",
+    "file": "cute-whimsical.zip"
+  },
+  {
+    "id": "Cyberpunk",
+    "name": "Cyberpunk Office",
+    "file": "cyberpunk.zip"
+  }
+]
