@@ -38,35 +38,45 @@ That's it. This will:
 
 ## Features
 
-### Multi-Agent Team Execution
+### Multi-Agent Teams
 
-A **Team Leader** coordinates specialists to tackle complex tasks. The Developer implements, the Code Reviewer validates, and the cycle continues until quality standards are met — all automated.
+A **Team Leader** coordinates specialists like Developer and Code
+Reviewer to plan, implement, and validate tasks automatically.
 
-### Multi-Model Collaboration
+### Multi-Model Workflows
 
-Combine **Claude, Codex, Gemini, Aider, and OpenCode** in one workflow. Each agent plays to its strengths while the orchestrator keeps everything in sync.
+Run **Claude, Codex, Gemini, Aider, and OpenCode** together in one
+pipeline, letting each model focus on what it does best.
 
-### Live Visual Workspace
+### Pixel Office Workspace
 
-A pixel-art office rendered with PixiJS shows real-time agent status, logs, and progress. Pick from **12 themed office skins** — cyberpunk, gothic, sci-fi, nostalgic, and more.
+Watch agents work in real time inside a **PixiJS pixel-art office**,
+with live status, logs, and progress visualization.
 
-### Ship-First Feedback Loop
+### Instant Preview Loop
 
-Every completed task generates an **auto preview** — static HTML, build output, or a running dev server. Review results instantly without leaving the interface.
+Every completed task generates an **auto preview** --- static HTML,
+build output, or a running dev server.
 
-### Cost & Token Visibility
+### Token Cost Visibility
 
-Track token usage **per agent and per team** in real time. Know exactly what each model run costs before it adds up.
+Track **token usage per agent and per team** in real time so you always
+know the cost of each run.
 
-### Shareable & Mobile-Ready
+### Live Sharing & Mobile Control
 
-- **Live sharing**: Invite others to watch progress and leave feedback that agents can incorporate
-- **Mobile control**: Pair your phone and manage sessions from anywhere
-- **Cross-device**: WebSocket, Ably, and Telegram channels for real-time sync
+Invite others to watch progress, leave feedback, or manage sessions
+directly from your phone.
+
+### Cross-Device Sync
+
+Real-time collaboration powered by **WebSocket, Ably, and Telegram
+channels**.
 
 ### Project History
 
-Every completed run is saved with a replayable preview. Browse past sessions, compare approaches, and build on previous work.
+Every run is saved with a **replayable preview**, letting you revisit
+results and build on previous work.
 
 ## Team Workflow
 
