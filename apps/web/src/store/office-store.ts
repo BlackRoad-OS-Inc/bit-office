@@ -89,8 +89,10 @@ interface OfficeStore {
   viewingProjectId: string | null;
   viewingProjectEvents: GatewayEvent[];
   viewingProjectName: string | null;
+  pendingPreviewUrl: string | null;
   connected: boolean;
   hydrated: boolean;
+  consumePreviewUrl: () => string | null;
   setConnected: (c: boolean) => void;
   setRole: (role: UserRole) => void;
   hydrate: () => void;
@@ -252,9 +254,15 @@ export const useOfficeStore = create<OfficeStore>((set, get) => ({
   viewingProjectId: null,
   viewingProjectEvents: [],
   viewingProjectName: null,
+  pendingPreviewUrl: null,
   connected: false,
   hydrated: false,
 
+  consumePreviewUrl: () => {
+    const url = get().pendingPreviewUrl;
+    if (url) set({ pendingPreviewUrl: null });
+    return url;
+  },
   setConnected: (c) => set({ connected: c }),
   setRole: (role) => set({ role }),
 
@@ -682,6 +690,9 @@ export const useOfficeStore = create<OfficeStore>((set, get) => ({
           // Cap at 50
           if (newSuggestions.length > 50) newSuggestions.shift();
           return { agents, suggestions: newSuggestions };
+        }
+        case "PREVIEW_READY": {
+          return { agents, pendingPreviewUrl: event.url };
         }
         case "PROJECT_LIST": {
           return { agents, projectList: event.projects };

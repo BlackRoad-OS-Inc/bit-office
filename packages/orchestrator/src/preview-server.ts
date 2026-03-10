@@ -59,15 +59,18 @@ class PreviewServer {
   runCommand(cmd: string, cwd: string, agentPort: number): string | undefined {
     this.stop();
 
-    // Always use our controlled port — strip any agent-specified port from the command,
-    // then inject --port flag. This is more reliable than string-replacing port numbers.
+    // Always use our controlled port — override agent-specified ports to prevent conflicts.
     const port = COMMAND_PORT;
     // Remove any existing --port/--Port/-p flags with their values
     cmd = cmd.replace(/\s+(?:--port|-p)\s+\d+/gi, "");
     // Remove the agent port number if it appears as a bare argument (e.g. "serve -l 5173")
     if (agentPort) cmd = cmd.replace(new RegExp(`\\b${agentPort}\\b`, "g"), String(port));
-    // Inject our port flag
-    cmd = `${cmd} --port ${port}`;
+    // Inject --port flag for tools that support it (JS ecosystem).
+    // Python commands don't accept --port — they use PORT env var instead.
+    const isPython = /^python\b|^python3\b/i.test(cmd.trim());
+    if (!isPython) {
+      cmd = `${cmd} --port ${port}`;
+    }
     console.log(`[PreviewServer] Command: "${cmd}" (forced port ${port})`);
 
     // Kill anything already on our port before starting

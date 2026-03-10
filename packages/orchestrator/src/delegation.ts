@@ -51,6 +51,8 @@ export class DelegationRouter {
   private devFixAttempts = new Map<string, number>();
   /** Tracks which dev agent was last assigned to work (for reviewer → dev routing) */
   private lastDevAgentId: string | null = null;
+  /** Last known preview fields from developer output (survives across rounds for leader context) */
+  private lastDevPreview: string = "";
   private agentManager: AgentManager;
   private promptEngine: PromptEngine;
   private emitEvent: (event: OrchestratorEvent) => void;
@@ -170,6 +172,7 @@ export class DelegationRouter {
     this.teamProjectDir = null;
     this.devFixAttempts.clear();
     this.lastDevAgentId = null;
+    this.lastDevPreview = "";
     for (const pending of this.pendingResults.values()) {
       clearTimeout(pending.timer);
     }
@@ -365,6 +368,19 @@ export class DelegationRouter {
       // ── Direct fix shortcut: reviewer FAIL → dev (skip leader) ──
       if (this.tryDirectFix(agentId, fromSession, fullOutput ?? summary, originAgentId)) {
         return; // Handled — skip normal leader forwarding
+      }
+
+      // Capture preview fields from developer results so leader always has them
+      const fromRole = fromSession?.role?.toLowerCase() ?? "";
+      if (!fromRole.includes("review") && fullOutput) {
+        const lines: string[] = [];
+        const em = fullOutput.match(/ENTRY_FILE:\s*(.+)/i);
+        const cm = fullOutput.match(/PREVIEW_CMD:\s*(.+)/i);
+        const pm = fullOutput.match(/PREVIEW_PORT:\s*[*`_]*(\d+)/i);
+        if (em) lines.push(`ENTRY_FILE: ${em[1].trim()}`);
+        if (cm) lines.push(`PREVIEW_CMD: ${cm[1].trim()}`);
+        if (pm) lines.push(`PREVIEW_PORT: ${pm[1]}`);
+        if (lines.length > 0) this.lastDevPreview = lines.join("\n");
       }
 
       // Batch results: accumulate and flush to leader after a short window
@@ -589,6 +605,7 @@ export class DelegationRouter {
       resultSummary: resultLines,
       originalTask: originSession.originalTask ?? "",
       roundInfo,
+      devPreview: this.lastDevPreview,
     });
 
     console.log(`[ResultBatch] Flushing ${pending.results.length} result(s) to ${originAgentId} (round ${this.leaderRounds}, budget=${CONFIG.delegation.budgetRounds}, ceiling=${CONFIG.delegation.hardCeilingRounds})`);

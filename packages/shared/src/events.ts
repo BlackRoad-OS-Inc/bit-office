@@ -196,6 +196,11 @@ export const ProjectDataEvent = z.object({
   events: z.array(z.any()),
 });
 
+export const PreviewReadyEvent = z.object({
+  type: z.literal("PREVIEW_READY"),
+  url: z.string(),
+});
+
 export const GatewayEventSchema = z.discriminatedUnion("type", [
   AgentsSyncEvent,
   AgentStatusEvent,
@@ -216,6 +221,7 @@ export const GatewayEventSchema = z.discriminatedUnion("type", [
   SuggestionEvent,
   ProjectListEvent,
   ProjectDataEvent,
+  PreviewReadyEvent,
 ]);
 
 export type TokenUsage = z.infer<typeof TokenUsage>;
@@ -239,4 +245,5 @@ export type SuggestionEvent = z.infer<typeof SuggestionEvent>;
 export type AgentsSyncEvent = z.infer<typeof AgentsSyncEvent>;
 export type ProjectListEvent = z.infer<typeof ProjectListEvent>;
 export type ProjectDataEvent = z.infer<typeof ProjectDataEvent>;
+export type PreviewReadyEvent = z.infer<typeof PreviewReadyEvent>;
 export type GatewayEvent = z.infer<typeof GatewayEventSchema>;

@@ -72,6 +72,12 @@ Team status:
 
 Delegate using: @AgentName: task description
 
+===== RULES =====
+- ONE task at a time. Delegate to the developer FIRST. Wait for their result before assigning Code Reviewer.
+- Do NOT assign Code Reviewer and Developer simultaneously — there is nothing to review until the dev is done.
+- Keep fixes MINIMAL. If the user reports a bug, fix THAT bug only. Do NOT add new features, tests, or process changes in the same round.
+- Do NOT redefine the reviewer's methodology or add new review requirements — just ask them to review the code.
+
 {{prompt}}`,
 
   "leader-result": `You are the Team Lead. You CANNOT write or fix code. You can ONLY delegate using @Name: <task>.
@@ -113,12 +119,15 @@ Check WHO sent this result, then follow the matching branch:
   • Permanent blocker (auth error, missing API key, service down) → report to the user, do not retry.
   • Same error repeated twice → STOP and report to the user.
 
-===== FINAL SUMMARY FORMAT =====
-(Copy preview fields EXACTLY from the developer's LAST successful report. Only include fields the dev actually provided — do NOT invent values.)
+===== DEVELOPER'S LAST KNOWN PREVIEW FIELDS =====
+{{devPreview}}
 
-ENTRY_FILE: <from dev — e.g. index.html, dist/index.html. OMIT if dev didn't provide one>
-PREVIEW_CMD: <from dev — e.g. "python app.py". OMIT if dev didn't provide one. NEVER use "npm run dev" or "npm start"!>
-PREVIEW_PORT: <from dev — e.g. 5000. OMIT if dev didn't provide one>
+===== FINAL SUMMARY FORMAT =====
+(Copy preview fields from DEVELOPER'S LAST KNOWN PREVIEW FIELDS above. Do NOT invent values.)
+
+ENTRY_FILE: <copy from above if available, otherwise OMIT>
+PREVIEW_CMD: <copy from above if available, otherwise OMIT. NEVER use "npm run dev" or "npm start"!>
+PREVIEW_PORT: <copy from above if available, otherwise OMIT>
 SUMMARY: <2-3 sentence description of what was built>
 
 RULES:
@@ -157,6 +166,12 @@ DELIVERABLE TYPES (prefer A):
 A) STATIC WEB → ENTRY_FILE: index.html
 B) WEB SERVER (only if backend needed) → PREVIEW_CMD + PREVIEW_PORT
 C) DESKTOP/CLI → PREVIEW_CMD only
+
+PORT RULES FOR WEB SERVERS (type B):
+- The system overrides your port. Your app MUST read port from the PORT environment variable.
+- Python: use int(os.environ.get("PORT", 5000)) — NOT a hardcoded port.
+- Node/JS: use process.env.PORT || 3000
+- Always output PREVIEW_CMD even for Vite/webpack/bundler projects (e.g. PREVIEW_CMD: npx vite).
 
 RESULT FORMAT:
 STATUS: done | failed

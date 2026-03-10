@@ -182,6 +182,28 @@ function saveAgentDefs(agents: AgentDefinition[]): void {
 let agentDefs: AgentDefinition[] = [];
 
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Auto-detect dev server from package.json dependencies
+// ---------------------------------------------------------------------------
+
+function detectDevServer(projectDir: string): { cmd: string; port: number } | null {
+  try {
+    const pkgPath = path.join(projectDir, "package.json");
+    if (!existsSync(pkgPath)) return null;
+    const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
+    const allDeps = { ...pkg.dependencies, ...pkg.devDependencies };
+    // Order matters: more specific frameworks first
+    if (allDeps["vite"]) return { cmd: "npx vite", port: 5173 };
+    if (allDeps["webpack-dev-server"]) return { cmd: "npx webpack serve", port: 8080 };
+    if (allDeps["parcel"]) return { cmd: "npx parcel index.html", port: 1234 };
+    if (allDeps["next"]) return { cmd: "npx next dev", port: 3000 };
+    if (allDeps["react-scripts"]) return { cmd: "npx react-scripts start", port: 3000 };
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 // Archive helpers (shared between phase-complete and END_PROJECT)
 // ---------------------------------------------------------------------------
 
@@ -393,8 +415,17 @@ function handleCommand(parsed: Command, meta: CommandMeta) {
         console.log(`[Gateway] SERVE_PREVIEW (launch): "${cleanCmd}" cwd=${cwd}`);
         previewServer.launchProcess(cleanCmd, cwd);
       } else if (cleanPath) {
-        console.log(`[Gateway] SERVE_PREVIEW (static): ${cleanPath}`);
-        previewServer.serve(cleanPath);
+        // Auto-detect projects that need a dev server instead of static serving
+        const projectDir = parsed.cwd ?? (cleanPath.includes("/") ? path.dirname(cleanPath) : config.defaultWorkspace);
+        const detected = detectDevServer(projectDir);
+        if (detected) {
+          console.log(`[Gateway] SERVE_PREVIEW (auto-detected ${detected.cmd}): cwd=${projectDir}`);
+          previewServer.runCommand(detected.cmd, projectDir, detected.port);
+          publishEvent({ type: "PREVIEW_READY", url: "http://localhost:9101" });
+        } else {
+          console.log(`[Gateway] SERVE_PREVIEW (static): ${cleanPath}`);
+          previewServer.serve(cleanPath);
+        }
       }
       break;
     }

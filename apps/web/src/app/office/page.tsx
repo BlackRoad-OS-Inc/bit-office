@@ -2110,7 +2110,7 @@ export default function OfficePage() {
   const [editingAgent, setEditingAgent] = useState<AgentDefinition | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [mobileTeamOpen, setMobileTeamOpen] = useState(false);
-  const [expandedSection, setExpandedSection] = useState<"team" | "agents" | "external">("team");
+  const [expandedSection, setExpandedSection] = useState<"team" | "agents" | "external">("agents");
   const [prompt, setPrompt] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -2140,6 +2140,15 @@ export default function OfficePage() {
 
   // Bridge store → scene adapter
   useSceneBridge(sceneAdapter, selectedAgent);
+
+  // Gateway may override preview URL (e.g. auto-detected Vite dev server)
+  const pendingPreviewUrl = useOfficeStore(s => s.pendingPreviewUrl);
+  useEffect(() => {
+    if (pendingPreviewUrl && previewUrl) {
+      setPreviewUrl(pendingPreviewUrl);
+      useOfficeStore.getState().consumePreviewUrl();
+    }
+  }, [pendingPreviewUrl, previewUrl]);
 
   // Load sound preference
   useEffect(() => {
