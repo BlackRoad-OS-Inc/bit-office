@@ -2511,6 +2511,7 @@ export default function OfficePage() {
   }, [suggestText]);
 
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [consoleMode, setConsoleMode] = useState(false);
 
   const handleCreateShareLink = useCallback(async (shareRole: "collaborator" | "spectator") => {
     try {
@@ -2544,7 +2545,7 @@ export default function OfficePage() {
   return (
     <div style={{ height: "100vh", width: "100vw", position: "relative", overflow: "hidden", display: "flex" }}>
       {/* Game Scene — fills remaining space after sidebar, centered */}
-      <div style={{ flex: 1, position: "relative", minWidth: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+      {!consoleMode && <div style={{ flex: 1, position: "relative", minWidth: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
         <div style={{ width: `min(100%, calc(100vh * ${mapAspect}))`, height: `min(100%, calc(100vw / ${mapAspect}))`, aspectRatio: `${mapAspect}`, position: "relative", maxHeight: "100vh" }}>
         <PixelOfficeScene
           onAdapterReady={handleAdapterReady}
@@ -2721,21 +2722,69 @@ export default function OfficePage() {
         )}
 
         </div>
-      </div>
+      </div>}
 
       {/* ── Right Sidebar (desktop only) — takes remaining space after game scene ── */}
       {!isMobile && (
         <div style={{
-          width: "35vw",
+          width: consoleMode ? "100vw" : "35vw",
           minWidth: 260,
           flexShrink: 0,
           height: "100vh",
           backgroundColor: "#1e1a30",
-          borderLeft: "2px solid #3d2e54",
+          borderLeft: consoleMode ? "none" : "2px solid #3d2e54",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
+          position: "relative",
+          transition: "width 0.3s ease",
         }}>
+          {/* Console mode toggle button — left edge */}
+          <button
+            onClick={() => setConsoleMode(!consoleMode)}
+            style={{
+              position: "absolute",
+              left: consoleMode ? 8 : -16,
+              top: "50%",
+              transform: "translateY(-50%)",
+              zIndex: 30,
+              width: 32,
+              height: 56,
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 0,
+              background: consoleMode
+                ? "linear-gradient(135deg, #2a2444 0%, #1e1a30 100%)"
+                : "linear-gradient(90deg, #2a2444 0%, #1e1a30 60%)",
+              borderRadius: consoleMode ? "6px" : "12px 0 0 12px",
+              borderTop: "1px solid #3d2e54",
+              borderBottom: "1px solid #3d2e54",
+              borderLeft: "1px solid #3d2e54",
+              borderRight: consoleMode ? "1px solid #3d2e54" : "none",
+              boxShadow: "-2px 0 8px rgba(0,0,0,0.3)",
+              color: "#e8b040",
+              fontSize: 14,
+              transition: "left 0.3s ease, border-radius 0.3s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "linear-gradient(135deg, #3a3460 0%, #2a2444 100%)";
+              e.currentTarget.style.color = "#f0c860";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = consoleMode
+                ? "linear-gradient(135deg, #2a2444 0%, #1e1a30 100%)"
+                : "linear-gradient(90deg, #2a2444 0%, #1e1a30 60%)";
+              e.currentTarget.style.color = "#e8b040";
+            }}
+            title={consoleMode ? "Back to Office" : "Console Mode"}
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ transform: consoleMode ? "rotate(0deg)" : "rotate(180deg)", transition: "transform 0.3s ease" }}>
+              <path d="M9 2L4 7L9 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
           {/* Accordion sections */}
           <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column" }}>
 
