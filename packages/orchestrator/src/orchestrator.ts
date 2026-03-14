@@ -222,9 +222,20 @@ export class Orchestrator extends EventEmitter<OrchestratorEventMap> {
     // Track for retry
     this.retryTracker?.track(taskId, prompt);
 
-    // Worktree setup
-    if (this.worktreeEnabled && !session.worktreePath) {
-      const wt = createWorktree(this.workspace, agentId, taskId, session.name);
+    // Worktree setup:
+    // 1. Team members: created by DelegationRouter in delegation.ts (not here)
+    // 2. Solo agents sharing the same workDir: auto-isolate via worktree
+    const teamProjectDir = this.delegationRouter.getTeamProjectDir();
+    const effectiveRepo = opts?.repoPath;
+    const needsWorktree = this.worktreeEnabled && !session.worktreePath && (
+      // Team fallback (retry/edge cases)
+      (session.teamId && teamProjectDir) ||
+      // Solo agents: isolate when another solo agent shares the same repoPath
+      (!session.teamId && effectiveRepo && this.hasSoloNeighbor(agentId, effectiveRepo))
+    );
+    if (needsWorktree) {
+      const base = session.teamId ? teamProjectDir! : effectiveRepo!;
+      const wt = createWorktree(base, agentId, taskId, session.name);
       if (wt) {
         const branch = `agent/${session.name.toLowerCase().replace(/\s+/g, "-")}/${taskId}`;
         session.worktreePath = wt;
@@ -247,6 +258,17 @@ export class Orchestrator extends EventEmitter<OrchestratorEventMap> {
       : undefined;
 
     session.runTask(taskId, prompt, repoPath, teamContext, true /* isUserInitiated */, opts?.phaseOverride);
+  }
+
+  /**
+   * Check if another solo agent (no teamId) is currently working in the same repoPath.
+   */
+  private hasSoloNeighbor(agentId: string, repoPath: string): boolean {
+    for (const other of this.agentManager.getAll()) {
+      if (other.agentId === agentId || other.teamId) continue;
+      if (other.currentWorkingDir === repoPath) return true;
+    }
+    return false;
   }
 
   cancelTask(agentId: string): void {
