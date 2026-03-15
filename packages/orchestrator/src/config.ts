@@ -25,7 +25,7 @@ export const CONFIG = {
     /** Leader task timeout — delegation planning only, no tools (ms) */
     leaderTimeoutMs: 3 * 60 * 1000,
     /** Worker task timeout — real coding with full tool access (ms) */
-    workerTimeoutMs: 8 * 60 * 1000,
+    workerTimeoutMs: 30 * 60 * 1000,
     /** Delay before setting agent status back to idle after task completion (ms) */
     idleDoneDelayMs: 5_000,
     /** Delay before setting agent status back to idle after task failure (ms) */

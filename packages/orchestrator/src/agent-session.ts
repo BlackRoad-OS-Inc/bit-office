@@ -135,6 +135,8 @@ export class AgentSession {
 
   /** Current working directory of the running task (used by worktree logic) */
   get currentWorkingDir(): string | null { return this.currentCwd; }
+  /** Whether this agent has session history (used --resume before) */
+  get hasSessionHistory(): boolean { return this.hasHistory; }
   /** The configured workspace root directory */
   get workspaceDir(): string { return this.workspace; }
 
@@ -277,17 +279,21 @@ export class AgentSession {
         detached: true,
       });
 
-      // Task timeout: leader (delegation planning), worker (real coding)
-      // Use SIGKILL (not SIGTERM) — Claude CLI ignores SIGTERM while waiting on API calls
+      // Task timeout: only for team members (prevent blocking the team flow).
+      // Solo agents have no timeout — user can cancel manually.
       this.timedOut = false;
-      const TASK_TIMEOUT_MS = this._isTeamLead ? CONFIG.timing.leaderTimeoutMs : CONFIG.timing.workerTimeoutMs;
-      this.taskTimeout = setTimeout(() => {
-        if (this.process?.pid) {
-          console.log(`[Agent ${this.agentId}] Task timed out after ${TASK_TIMEOUT_MS / 1000}s, killing`);
-          this.timedOut = true;
-          try { process.kill(-this.process.pid, "SIGKILL"); } catch { this.process.kill("SIGKILL"); }
-        }
-      }, TASK_TIMEOUT_MS);
+      const TASK_TIMEOUT_MS = !this.teamId ? 0
+        : this._isTeamLead ? CONFIG.timing.leaderTimeoutMs
+        : CONFIG.timing.workerTimeoutMs;
+      if (TASK_TIMEOUT_MS > 0) {
+        this.taskTimeout = setTimeout(() => {
+          if (this.process?.pid) {
+            console.log(`[Agent ${this.agentId}] Task timed out after ${TASK_TIMEOUT_MS / 1000}s, killing`);
+            this.timedOut = true;
+            try { process.kill(-this.process.pid, "SIGKILL"); } catch { this.process.kill("SIGKILL"); }
+          }
+        }, TASK_TIMEOUT_MS);
+      }
 
       // Delegation detection regex
       const DELEGATION_RE = /^\s*(?:[-*>]\s*)?(?:\*\*)?@(\w+)(?:\*\*)?:\s*(.+)$/;

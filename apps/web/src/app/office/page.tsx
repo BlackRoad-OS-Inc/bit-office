@@ -3116,6 +3116,11 @@ export default function OfficePage() {
                         )}
 
 
+                        {busy && !agentState.pendingApproval && agentState.messages.length > 0 && agentState.messages[agentState.messages.length - 1]?.text && (
+                          <div style={{ fontSize: TERM_SIZE, fontFamily: TERM_FONT, color: TERM_GREEN, opacity: 0.3, padding: "2px 0" }}>
+                            <span className="working-dots" />
+                          </div>
+                        )}
                         <div ref={chatEndRef} />
                       </div>
 

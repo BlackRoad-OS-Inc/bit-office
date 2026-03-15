@@ -136,6 +136,20 @@ export class Orchestrator extends EventEmitter<OrchestratorEventMap> {
   }
 
   removeAgent(agentId: string): void {
+    const session = this.agentManager.get(agentId);
+    // Merge worktree back before removing (solo agents keep worktree alive during their lifetime)
+    if (session?.worktreePath && session.worktreeBranch && !session.teamId) {
+      try {
+        const { execSync } = require("child_process");
+        // Commit any uncommitted changes first
+        try { execSync("git add -A && git diff --cached --quiet || git commit -m 'final-save'", { cwd: session.worktreePath, stdio: "pipe", timeout: 5000 }); } catch { /* ignore */ }
+        // Merge back to main
+        const base = session.currentWorkingDir ? require("path").dirname(require("path").dirname(session.worktreePath)) : this.workspace;
+        mergeWorktree(base, session.worktreePath, session.worktreeBranch);
+      } catch (err) {
+        console.error(`[Orchestrator] Worktree merge on fire failed:`, err);
+      }
+    }
     this.cancelTask(agentId);
     this.delegationRouter.clearAgent(agentId);
     this.agentManager.delete(agentId);
@@ -231,7 +245,7 @@ export class Orchestrator extends EventEmitter<OrchestratorEventMap> {
     // Agents with hasHistory would break on --resume in a different CWD.
     // Team dev worktrees are created by delegation.ts (fresh delegated tasks, no resume).
     const isLeader = this.agentManager.isTeamLead(agentId);
-    const needsWorktree = this.worktreeEnabled && !session.worktreePath && !isLeader && !session.hasHistory && (
+    const needsWorktree = this.worktreeEnabled && !session.worktreePath && !isLeader && !session.hasSessionHistory && (
       // Solo agents: isolate when another solo agent shares the same repoPath
       (!session.teamId && effectiveRepo && this.hasSoloNeighbor(agentId, effectiveRepo))
     );
@@ -587,30 +601,17 @@ export class Orchestrator extends EventEmitter<OrchestratorEventMap> {
       }
     }
 
-    // Handle worktree merge on task completion (solo agents only; team agents handled in delegation.ts)
+    // Solo agent worktree: keep alive for session continuity (--resume needs same CWD).
+    // Merge + cleanup only happens on agent fire/cancel, not on task completion.
+    // Team agent worktrees are handled in delegation.ts (different lifecycle).
     if (event.type === "task:done") {
       const session = this.agentManager.get(agentId);
       if (session?.worktreePath && session.worktreeBranch && !session.teamId) {
+        // Just commit changes so they're not lost, but keep the worktree alive
         try {
-          const base = this.delegationRouter.getTeamProjectDir() ?? this.workspace;
-          if (this.worktreeMerge) {
-            const result = mergeWorktree(base, session.worktreePath, session.worktreeBranch);
-            this.emitEvent({
-              type: "worktree:merged",
-              agentId,
-              taskId: event.taskId,
-              branch: session.worktreeBranch,
-              success: result.success,
-              conflictFiles: result.conflictFiles,
-            });
-          } else {
-            removeWorktree(session.worktreePath, session.worktreeBranch, base);
-          }
-        } catch (err) {
-          console.error(`[Orchestrator] Worktree cleanup failed for ${session.name}:`, err);
-        }
-        session.worktreePath = null;
-        session.worktreeBranch = null;
+          const { execSync } = require("child_process");
+          execSync("git add -A && git diff --cached --quiet || git commit -m 'auto-save'", { cwd: session.worktreePath, stdio: "pipe", timeout: 5000 });
+        } catch { /* no changes to commit, or git error — ignore */ }
       }
 
       this.retryTracker?.clear(event.taskId);
