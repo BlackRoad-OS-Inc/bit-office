@@ -71,9 +71,9 @@ function linkifyText(children: React.ReactNode): React.ReactNode {
   for (const link of links) {
     if (link.start > lastIdx) parts.push(text.slice(lastIdx, link.start));
     if (link.type === "url") {
-      parts.push(<a key={link.start} href={link.url} target="_blank" rel="noopener noreferrer" style={{ color: "#7a9a7a" }}>{link.url}</a>);
+      parts.push(<a key={link.start} href={link.url} target="_blank" rel="noopener noreferrer" style={{ color: TERM_TEXT }}>{link.url}</a>);
     } else {
-      parts.push(<span key={link.start} onClick={() => sendCommand({ type: "OPEN_FILE", path: link.url })} style={{ color: "#7a9a7a", cursor: "pointer" }} title="Click to open">{link.url}</span>);
+      parts.push(<span key={link.start} onClick={() => sendCommand({ type: "OPEN_FILE", path: link.url })} style={{ color: TERM_TEXT, cursor: "pointer" }} title="Click to open">{link.url}</span>);
     }
     lastIdx = link.end;
   }
@@ -122,7 +122,7 @@ function ThinkingBubble({ logLine }: { logLine: string | null }) {
     <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 8 }}>
       <div style={{
         padding: "8px 12px",
-        backgroundColor: "#0c1210", color: "#7a8a6a", fontSize: 12,
+        backgroundColor: TERM_PANEL, color: "#7a8a6a", fontSize: 12,
         fontFamily: "monospace",
         border: "1px solid #1a2a1a",
         borderLeft: "2px solid #e8b04060",
@@ -526,7 +526,7 @@ function CelebrationModal({ previewUrl, previewPath, onPreview, onDismiss, previ
             onClick={onDismiss}
             style={{
               padding: "9px 20px",
-              border: "1px solid #1a2a1a", backgroundColor: "#0c1210",
+              border: "1px solid #1a2a1a", backgroundColor: TERM_PANEL,
               color: "#9a8a68", fontSize: 13, cursor: "pointer", fontFamily: "monospace",
             }}
           >
@@ -708,23 +708,165 @@ function MdContent({ text }: { text: string }) {
   );
 }
 
-// ── Terminal theme ──
-// All console/chat colors defined here. Change these to re-skin the entire UI.
+// ── Terminal theme system ──
 const TERM_FONT = "'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace";
 const TERM_SIZE = 12;
-const TERM_GREEN = "#18ff62";        // Primary accent
-const TERM_DIM = "#3a5a3a";          // Dimmed text
-const TERM_TEXT = "#7a9a7a";          // Agent output text
-const TERM_TEXT_BRIGHT = "#b8d0b0";  // User input text
-const TERM_GLOW = "0 0 8px rgba(24,255,98,0.25)";
-const TERM_BG = "#050808";           // Chat content area
-const TERM_PANEL = "#0c1210";        // Sidebar / modals
-const TERM_SURFACE = "#0a0e0a";      // Cards / elevated
-const TERM_HOVER = "#0e1a0e";        // Hover state
-const TERM_BORDER = "#1a2a1a";       // Borders
-const TERM_BORDER_DIM = "#152515";   // Subtle borders
-const TERM_GLOW_BORDER = `0 0 6px ${TERM_GREEN}15, inset 0 0 6px ${TERM_GREEN}08`;
-const TERM_GLOW_FOCUS = `0 0 12px ${TERM_GREEN}30, 0 0 4px ${TERM_GREEN}20`;
+
+type TermTheme = {
+  name: string;
+  accent: string;
+  accentRgb: string;
+  dim: string;
+  text: string;
+  textBright: string;
+  bg: string;
+  panel: string;
+  surface: string;
+  hover: string;
+  border: string;
+  borderDim: string;
+  codeBg: string;
+  codeText: string;
+  scrollThumb: string;
+};
+
+const TERM_THEMES: Record<string, TermTheme> = {
+  "green-hacker": {
+    name: "Green Hacker",
+    accent: "#18ff62",
+    accentRgb: "24,255,98",
+    dim: "#3a5a3a",
+    text: "#7a9a7a",
+    textBright: "#b8d0b0",
+    bg: "#050808",
+    panel: "#0c1210",
+    surface: "#0a0e0a",
+    hover: "#0e1a0e",
+    border: "#1a2a1a",
+    borderDim: "#152515",
+    codeBg: "#060810",
+    codeText: "#6a8a6a",
+    scrollThumb: "#1a3a1a",
+  },
+  "tokyo-night": {
+    name: "Tokyo Night",
+    accent: "#7aa2f7",
+    accentRgb: "122,162,247",
+    dim: "#3b4261",
+    text: "#565f89",
+    textBright: "#c0caf5",
+    bg: "#1a1b26",
+    panel: "#16161e",
+    surface: "#1e2030",
+    hover: "#24283b",
+    border: "#292e42",
+    borderDim: "#232538",
+    codeBg: "#15161e",
+    codeText: "#565f89",
+    scrollThumb: "#292e42",
+  },
+  dracula: {
+    name: "Dracula",
+    accent: "#bd93f9",
+    accentRgb: "189,147,249",
+    dim: "#44475a",
+    text: "#6272a4",
+    textBright: "#f8f8f2",
+    bg: "#21222c",
+    panel: "#282a36",
+    surface: "#2d2f3e",
+    hover: "#343746",
+    border: "#44475a",
+    borderDim: "#3a3d4e",
+    codeBg: "#1e1f29",
+    codeText: "#6272a4",
+    scrollThumb: "#44475a",
+  },
+  nord: {
+    name: "Nord",
+    accent: "#88c0d0",
+    accentRgb: "136,192,208",
+    dim: "#434c5e",
+    text: "#7b88a1",
+    textBright: "#d8dee9",
+    bg: "#242933",
+    panel: "#2e3440",
+    surface: "#2e3440",
+    hover: "#3b4252",
+    border: "#3b4252",
+    borderDim: "#353b49",
+    codeBg: "#222730",
+    codeText: "#7b88a1",
+    scrollThumb: "#3b4252",
+  },
+  monokai: {
+    name: "Monokai",
+    accent: "#a6e22e",
+    accentRgb: "166,226,46",
+    dim: "#49483e",
+    text: "#8f908a",
+    textBright: "#f8f8f2",
+    bg: "#1e1f1c",
+    panel: "#272822",
+    surface: "#2d2e27",
+    hover: "#3e3d32",
+    border: "#3e3d32",
+    borderDim: "#353429",
+    codeBg: "#1c1d19",
+    codeText: "#75715e",
+    scrollThumb: "#49483e",
+  },
+};
+
+// Mutable theme variables — reassigned by applyTermTheme()
+let TERM_GREEN = "#18ff62";
+let TERM_DIM = "#3a5a3a";
+let TERM_TEXT = "#7a9a7a";
+let TERM_TEXT_BRIGHT = "#b8d0b0";
+let TERM_GLOW = "0 0 8px rgba(24,255,98,0.25)";
+let TERM_BG = "#050808";
+let TERM_PANEL = "#0c1210";
+let TERM_SURFACE = "#0a0e0a";
+let TERM_HOVER = "#0e1a0e";
+let TERM_BORDER = "#1a2a1a";
+let TERM_BORDER_DIM = "#152515";
+let TERM_GLOW_BORDER = `0 0 6px ${TERM_GREEN}15, inset 0 0 6px ${TERM_GREEN}08`;
+let TERM_GLOW_FOCUS = `0 0 12px ${TERM_GREEN}30, 0 0 4px ${TERM_GREEN}20`;
+
+function applyTermTheme(key: string) {
+  const t = TERM_THEMES[key] ?? TERM_THEMES["green-hacker"];
+  TERM_GREEN = t.accent;
+  TERM_DIM = t.dim;
+  TERM_TEXT = t.text;
+  TERM_TEXT_BRIGHT = t.textBright;
+  TERM_BG = t.bg;
+  TERM_PANEL = t.panel;
+  TERM_SURFACE = t.surface;
+  TERM_HOVER = t.hover;
+  TERM_BORDER = t.border;
+  TERM_BORDER_DIM = t.borderDim;
+  TERM_GLOW = `0 0 8px rgba(${t.accentRgb},0.25)`;
+  TERM_GLOW_BORDER = `0 0 6px ${t.accent}15, inset 0 0 6px ${t.accent}08`;
+  TERM_GLOW_FOCUS = `0 0 12px ${t.accent}30, 0 0 4px ${t.accent}20`;
+  // Update CSS variables for layout.tsx CSS rules
+  if (typeof document !== "undefined") {
+    const s = document.documentElement.style;
+    s.setProperty("--term-bg", t.bg);
+    s.setProperty("--term-panel", t.panel);
+    s.setProperty("--term-card", t.surface);
+    s.setProperty("--term-surface", t.surface);
+    s.setProperty("--term-border", t.border);
+    s.setProperty("--term-border-dim", t.borderDim);
+    s.setProperty("--term-green", t.accent);
+    s.setProperty("--term-green-dim", t.dim);
+    s.setProperty("--term-text", t.text);
+    s.setProperty("--term-text-bright", t.textBright);
+    s.setProperty("--term-accent-rgb", t.accentRgb);
+    s.setProperty("--term-code-bg", t.codeBg);
+    s.setProperty("--term-code-text", t.codeText);
+    s.setProperty("--term-scroll-thumb", t.scrollThumb);
+  }
+}
 
 const DONE_VERBS = ["Brewed", "Crafted", "Forged", "Compiled", "Shipped", "Deployed", "Hacked", "Rendered", "Built", "Cooked"];
 function formatDuration(ms: number): string {
@@ -748,7 +890,7 @@ function SysMsg({ ts, tag, text, firstLine, isLong }: { ts: string; tag: string;
         >{expanded ? "\u25BE" : "\u25B8"}</span>
       )}
       <span style={{ color: TERM_GREEN, opacity: 0.4 }}>[{tag}] </span>
-      <span style={{ color: "#556655", wordBreak: "break-word" }} className="chat-markdown">
+      <span style={{ color: TERM_DIM, wordBreak: "break-word" }} className="chat-markdown">
         {isLong && !expanded
           ? <span>{firstLine}</span>
           : <MdContent text={text} />
@@ -1144,7 +1286,7 @@ function CreateAgentModal({ onSave, onClose, assetsReady, editAgent }: {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          backgroundColor: "#0c1210", padding: "18px 18px 14px",
+          backgroundColor: TERM_PANEL, padding: "18px 18px 14px",
           width: "90%", maxWidth: 400, border: "2px solid #1a2a1a",
           boxShadow: "4px 4px 0px rgba(0,0,0,0.5)",
           maxHeight: "90vh", overflowY: "auto",
@@ -1404,7 +1546,7 @@ function HireModal({ agentDefs, onHire, onCreate, onEdit, onDelete, onClose, ass
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          backgroundColor: "#0c1210", padding: "18px 18px 14px",
+          backgroundColor: TERM_PANEL, padding: "18px 18px 14px",
           width: "90%", maxWidth: 420, border: "2px solid #1a2a1a",
           boxShadow: "4px 4px 0px rgba(0,0,0,0.5)",
           maxHeight: "90vh", overflowY: "auto",
@@ -1843,7 +1985,7 @@ function HireTeamModal({ agentDefs, onCreateTeam, onClose, assetsReady }: {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          backgroundColor: "#0c1210", padding: "18px 18px 14px",
+          backgroundColor: TERM_PANEL, padding: "18px 18px 14px",
           width: "90%", maxWidth: 440, border: "2px solid #1a2a1a",
           boxShadow: "4px 4px 0px rgba(0,0,0,0.5)",
           maxHeight: "90vh", overflowY: "auto",
@@ -2124,6 +2266,18 @@ export default function OfficePage() {
   const zoomRef = useRef(1);
   const panRef = useRef({ x: 0, y: 0 });
   const [assetsReady, setAssetsReady] = useState(false);
+
+  // ── Theme ──
+  const [termTheme, setTermTheme] = useState(() => {
+    if (typeof window !== "undefined") return localStorage.getItem("bit-office-theme") ?? "green-hacker";
+    return "green-hacker";
+  });
+  // Apply theme on mount and change
+  applyTermTheme(termTheme); // synchronous — updates module vars before render
+  useEffect(() => {
+    applyTermTheme(termTheme);
+    localStorage.setItem("bit-office-theme", termTheme);
+  }, [termTheme]);
 
   // Bridge store → scene adapter
   useSceneBridge(sceneAdapter, selectedAgent);
@@ -2730,7 +2884,7 @@ export default function OfficePage() {
                 {showShareMenu && (
                   <div style={{
                     position: "absolute", top: "100%", left: 0, marginTop: 4, zIndex: 50,
-                    backgroundColor: "#0c1210", border: "1px solid #1a2a1a",
+                    backgroundColor: TERM_PANEL, border: "1px solid #1a2a1a",
                     display: "flex", flexDirection: "column", minWidth: 160,
                   }}>
                     <button
@@ -2893,13 +3047,35 @@ export default function OfficePage() {
               color: "#e8b040", fontSize: 14,
             }}
             onMouseEnter={(e) => { e.currentTarget.style.background = "#2a2444"; e.currentTarget.style.color = "#f0c860"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "#0c1210"; e.currentTarget.style.color = "#e8b040"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = TERM_PANEL; e.currentTarget.style.color = "#e8b040"; }}
             title={consoleMode ? "Back to Office" : "Console Mode"}
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ transform: consoleMode ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s ease" }}>
               <path d="M9 2L4 7L9 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
+
+          {/* Theme picker */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 3, marginTop: 8, alignItems: "center" }}>
+            {Object.entries(TERM_THEMES).map(([key, theme]) => (
+              <button
+                key={key}
+                onClick={() => setTermTheme(key)}
+                title={theme.name}
+                style={{
+                  width: 10, height: 10, borderRadius: "50%", padding: 0,
+                  border: termTheme === key ? `2px solid ${theme.accent}` : "1px solid #444",
+                  backgroundColor: theme.accent,
+                  cursor: "pointer",
+                  opacity: termTheme === key ? 1 : 0.4,
+                  transition: "all 0.15s",
+                  boxShadow: termTheme === key ? `0 0 6px ${theme.accent}60` : "none",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; }}
+                onMouseLeave={(e) => { if (termTheme !== key) e.currentTarget.style.opacity = "0.4"; }}
+              />
+            ))}
+          </div>
         </div>
 
         <div className="term-dotgrid" style={{
@@ -3261,7 +3437,7 @@ export default function OfficePage() {
                                     placeholder={busy ? "esc stop · type to continue" : ""}
                                     style={{
                                       flex: 1, padding: "6px 5px", border: "none",
-                                      backgroundColor: "transparent", color: "#b8d0b0", fontSize: TERM_SIZE, outline: "none",
+                                      backgroundColor: "transparent", color: TERM_TEXT_BRIGHT, fontSize: TERM_SIZE, outline: "none",
                                       fontFamily: TERM_FONT, fontWeight: 400, caretColor: TERM_GREEN,
                                     }}
                                   />
@@ -3294,7 +3470,7 @@ export default function OfficePage() {
                                   placeholder="or give feedback..."
                                   style={{
                                     flex: 1, padding: "5px 6px", border: "none",
-                                    backgroundColor: "transparent", color: "#b8d0b0", fontSize: TERM_SIZE, outline: "none",
+                                    backgroundColor: "transparent", color: TERM_TEXT_BRIGHT, fontSize: TERM_SIZE, outline: "none",
                                     fontFamily: TERM_FONT, caretColor: TERM_GREEN,
                                   }}
                                 />
@@ -3311,7 +3487,7 @@ export default function OfficePage() {
                                   placeholder="request changes..."
                                   style={{
                                     flex: 1, padding: "5px 6px", border: "none",
-                                    backgroundColor: "transparent", color: "#b8d0b0", fontSize: TERM_SIZE, outline: "none",
+                                    backgroundColor: "transparent", color: TERM_TEXT_BRIGHT, fontSize: TERM_SIZE, outline: "none",
                                     fontFamily: TERM_FONT, caretColor: TERM_GREEN,
                                   }}
                                 />
@@ -3339,7 +3515,7 @@ export default function OfficePage() {
                                   placeholder={isAgentBusy ? "esc stop · type to continue" : ""}
                                   style={{
                                     flex: 1, padding: "6px 5px", border: "none",
-                                    backgroundColor: "transparent", color: "#b8d0b0", fontSize: TERM_SIZE, outline: "none",
+                                    backgroundColor: "transparent", color: TERM_TEXT_BRIGHT, fontSize: TERM_SIZE, outline: "none",
                                     fontFamily: TERM_FONT, fontWeight: 400, caretColor: TERM_GREEN,
                                   }}
                                   autoFocus
@@ -3559,7 +3735,7 @@ export default function OfficePage() {
                   position: "relative", flexShrink: 0,
                   width: 44, height: 44,
                   border: selectedAgent === agent.agentId ? "1px solid #e8b040" : "1px solid #1a2a1a",
-                  backgroundColor: "#0c1210",
+                  backgroundColor: TERM_PANEL,
                   cursor: "pointer", padding: 0,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   overflow: "hidden",
@@ -3598,7 +3774,7 @@ export default function OfficePage() {
                 borderBottom: "1px solid #152515",
                 display: "flex", alignItems: "center", gap: 10,
                 flexShrink: 0,
-                backgroundColor: "#0c1210",
+                backgroundColor: TERM_PANEL,
                 cursor: "pointer",
               }}
             >
@@ -3944,7 +4120,7 @@ export default function OfficePage() {
             style={{
               padding: "12px 14px", borderBottom: "1px solid #152515",
               display: "flex", alignItems: "center", gap: 10, flexShrink: 0,
-              backgroundColor: "#0c1210", cursor: "pointer",
+              backgroundColor: TERM_PANEL, cursor: "pointer",
             }}
           >
             <span style={{ fontSize: 15, color: "#7a6858", marginRight: 4 }}>&larr;</span>
@@ -4053,7 +4229,7 @@ export default function OfficePage() {
           display: "flex", alignItems: "center", justifyContent: "center",
         }} onClick={() => setShareUrl(null)}>
           <div style={{
-            backgroundColor: "#0c1210", border: "1px solid #1a2a1a",
+            backgroundColor: TERM_PANEL, border: "1px solid #1a2a1a",
             padding: 24, maxWidth: 420, width: "90%",
           }} onClick={(e) => e.stopPropagation()}>
             <div style={{ fontSize: 15, fontWeight: 700, color: "#eddcb8", marginBottom: 12 }}>Share Link Created</div>

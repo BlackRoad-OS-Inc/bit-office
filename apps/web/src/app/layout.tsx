@@ -37,11 +37,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             --term-green-dim: #3a5a3a;
             --term-text: #7a9a7a;
             --term-text-bright: #b8d0b0;
-
-            /* ── Alpha / glow variables ── */
-            --term-glow: 0 0 8px rgba(24,255,98,0.25);
-            --term-green-alpha-10: rgba(24,255,98,0.1);
-            --term-green-alpha-20: rgba(24,255,98,0.2);
+            --term-accent-rgb: 24,255,98;
+            --term-code-bg: #060810;
+            --term-code-text: #6a8a6a;
+            --term-scroll-thumb: #1a3a1a;
 
             /* ── Legacy aliases (for components not yet migrated) ── */
             --px-bg-deep: var(--office-bg);
@@ -70,11 +69,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             background: transparent;
           }
           *::-webkit-scrollbar-thumb {
-            background: #1a3a1a;
+            background: var(--term-scroll-thumb);
             border-radius: 2px;
           }
           *::-webkit-scrollbar-thumb:hover {
-            background: #18ff6240;
+            background: rgba(var(--term-accent-rgb), 0.25);
           }
           *::-webkit-scrollbar-corner {
             background: transparent;
@@ -117,8 +116,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               to bottom,
               transparent 0px,
               transparent 3px,
-              rgba(24,255,98,0.04) 3px,
-              rgba(24,255,98,0.04) 4px
+              rgba(var(--term-accent-rgb),0.04) 3px,
+              rgba(var(--term-accent-rgb),0.04) 4px
             );
             pointer-events: none;
             z-index: 1;
@@ -130,7 +129,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             background: linear-gradient(
               to bottom,
               transparent 0%,
-              rgba(24,255,98,0.05) 50%,
+              rgba(var(--term-accent-rgb),0.05) 50%,
               transparent 100%
             );
             animation: crt-scanline 6s linear infinite;
@@ -143,7 +142,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           .term-cursor {
             display: inline-block;
             animation: cursor-blink 1s step-end infinite;
-            color: #18ff62;
+            color: var(--term-green);
           }
           .chat-markdown, .chat-markdown *,
           .term-msg, .term-msg *,
@@ -164,20 +163,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           .chat-markdown code {
             font-size: inherit !important; font-family: inherit !important;
             background: none !important; padding: 0 !important; border: none !important;
-            color: #18ff62 !important; opacity: 0.5 !important;
+            color: var(--term-green) !important; opacity: 0.5 !important;
           }
           .chat-markdown pre {
             margin: 2px 0 !important; padding: 4px 8px !important;
-            background: #060810 !important; border-left: 1px solid #18ff6215 !important; overflow-x: auto;
+            background: var(--term-code-bg) !important; border-left: 1px solid rgba(var(--term-accent-rgb),0.08) !important; overflow-x: auto;
           }
           .chat-markdown pre code {
-            color: #6a8a6a !important; opacity: 1 !important;
+            color: var(--term-code-text) !important; opacity: 1 !important;
           }
           .chat-markdown p { margin: 0 0 2px !important; }
           .chat-markdown ul, .chat-markdown ol { margin: 2px 0 !important; padding-left: 16px !important; }
           .chat-markdown li { margin: 0 !important; }
-          .chat-markdown hr { border: none !important; border-top: 1px solid #1a2a1a !important; margin: 4px 0 !important; }
-          .chat-markdown a, .crt-screen a { color: #7a9a7a !important; text-decoration: none !important; }
+          .chat-markdown hr { border: none !important; border-top: 1px solid var(--term-border) !important; margin: 4px 0 !important; }
+          .chat-markdown a, .crt-screen a { color: var(--term-text) !important; text-decoration: none !important; }
           .chat-markdown a:hover, .crt-screen a:hover { text-decoration: underline !important; }
           @keyframes dot-pulse {
             0% { content: '.'; }
@@ -199,7 +198,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }
           /* ── Dot-grid background ── */
           .term-dotgrid {
-            background-image: radial-gradient(circle, rgba(24,255,98,0.07) 1px, transparent 1px);
+            background-image: radial-gradient(circle, rgba(var(--term-accent-rgb),0.07) 1px, transparent 1px);
             background-size: 22px 22px;
           }
           /* ── Text rendering ── */
@@ -209,11 +208,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             font-feature-settings: "liga" 1, "calt" 1;
           }
           /* ── Text selection ── */
-          .crt-screen ::selection { background: rgba(24,255,98,0.2); color: #b8d0b0; }
+          .crt-screen ::selection { background: rgba(var(--term-accent-rgb),0.2); color: var(--term-text-bright); }
           /* ── Input focus glow ── */
           @keyframes input-glow {
-            0%,100% { box-shadow: 0 0 4px rgba(24,255,98,0.1); }
-            50% { box-shadow: 0 0 10px rgba(24,255,98,0.25); }
+            0%,100% { box-shadow: 0 0 4px rgba(var(--term-accent-rgb),0.1); }
+            50% { box-shadow: 0 0 10px rgba(var(--term-accent-rgb),0.25); }
           }
           .term-input:focus { animation: input-glow 2s ease-in-out infinite; outline: none; }
           /* ── Button click feedback ── */
