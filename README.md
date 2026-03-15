@@ -1,185 +1,41 @@
 <div align="center">
 
-# Bit Office
+<img src="https://images.blackroad.io/pixel-art/road-logo.png" alt="BlackRoad OS" width="80" />
 
-### Pixel office for AI agents and multi-agent collaboration
+# bit-office
 
-[![npm version](https://img.shields.io/npm/v/bit-office?color=cb3837&logo=npm)](https://www.npmjs.com/package/bit-office)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/longyangxi/bit-office/pulls)
+**Pixel office for AI agents and multi-agent collaboration**
 
-**Support Claude, Codex, Gemini, Aider etc. — one team, getting better every project.**
-
-[Quick Start](#quick-start) | [Features](#features) | [Team Workflow](#team-workflow) | [Architecture](#architecture) | [Contributing](#contributing)
+[![BlackRoad OS](https://img.shields.io/badge/BlackRoad_OS-Pave_Tomorrow-FF2255?style=for-the-badge&labelColor=000000)](https://blackroad.io)
+[![License](https://img.shields.io/badge/License-Proprietary-FF6B2B?style=for-the-badge&labelColor=000000)](./LICENSE)
+[![Edge AI](https://img.shields.io/badge/Edge_AI-52_TOPS-00D4FF?style=for-the-badge&labelColor=000000)](https://github.com/BlackRoad-OS-Inc)
 
 </div>
 
+<div align="center">
+<sub>Part of the <a href="https://blackroad.io">BlackRoad OS</a> ecosystem — sovereign edge AI infrastructure</sub>
+</div>
+
 ---
-![Image](https://github.com/user-attachments/assets/ecfcd88b-e72e-4b04-bdd7-87eea9f00b51)
 
-## What is Bit Office
+## Overview
 
-Bit Office gives AI automation a **visible, controllable workspace**. Different AI models collaborate as one team under a Team Leader — planning, coding, reviewing, and delivering in a single flow, all rendered in a live pixel-art office you can watch, control, and share.
-
-What makes it different: **agents get better over time**. Rate each project on creativity, visual quality, interaction, completeness, and engagement. Your ratings and review patterns are stored as persistent memory — the next time the team plans a project, they know what scored low and actively improve on it.
-
-## Quick Start
-
-```bash
-npx bit-office
-```
-
-That's it. This will:
-
-1. Start a local gateway daemon
-2. Open the pixel-art office UI in your browser
-3. Auto-detect installed AI CLIs (Claude, Codex, Gemini, Aider, OpenCode)
-4. Generate a pair code for mobile access
-
-## Features
-
-### Multi-Agent Teams
-
-A **Team Leader** coordinates specialists like Developer and Code
-Reviewer to plan, implement, and validate tasks automatically.
-
-### Multi-Model Workflows
-
-Run **Claude, Codex, Gemini, Aider, and OpenCode** together in one
-pipeline, letting each model focus on what it does best.
-
-### Pixel Office Workspace
-
-Watch agents work in real time inside a **PixiJS pixel-art office**,
-with live status, logs, and progress visualization.
-
-### Instant Preview & Rating
-
-Every completed task generates an **auto preview**. Rate the result
-across five dimensions — your feedback becomes **persistent memory**
-that shapes how agents approach the next project.
-
-### Self-Improving Agents
-
-Review patterns, tech preferences, and project ratings are stored
-across sessions. Agents **learn what you value** and adapt — low
-visual scores lead to richer designs, recurring review failures get
-avoided automatically.
-
-### Token Cost Visibility
-
-Track **token usage per agent and per team** in real time so you always
-know the cost of each run.
-
-### Live Sharing & Mobile Control
-
-Invite others to watch progress, leave feedback, or manage sessions
-directly from your phone.
-
-### Cross-Device Sync
-
-Real-time collaboration powered by **WebSocket, Ably, and Telegram
-channels**.
-
-### Project History
-
-Every run is saved with a **replayable preview**, letting you revisit
-results and build on previous work.
-
-## Team Workflow
-
-| Phase | What Happens | Your Action |
-|---|---|---|
-| **Create** | Team Lead gathers intent and scope | Describe what to build |
-| **Design** | Team Lead proposes implementation plan | Approve or request changes |
-| **Execute** | Developer implements, Reviewer validates | Monitor or cancel |
-| **Complete** | Preview and summary delivered | Rate, give feedback, or end project |
-
-Ratings persist as agent memory. The next project starts with lessons from the last one.
-
-Full details in [team-workflow.md](team-workflow.md).
-
-## Use Cases
-
-- **AI-native prototyping** — go from idea to working preview in one session
-- **Feature spikes** — rapid implementation with continuous preview feedback
-- **Multi-model experiments** — compare how different AI backends approach the same task
-- **Live demos** — show autonomous development workflows to your team or audience
-
-## Run from Source
-
-### Prerequisites
-
-- **Node.js** 18+
-- **pnpm**
-- At least one AI CLI installed: `claude`, `codex`, `gemini`, `aider`, or `opencode`
-
-### Setup
-
-```bash
-git clone https://github.com/longyangxi/bit-office.git
-cd bit-office
-pnpm install
-pnpm dev
-```
-
-### Scripts
-
-| Command | Description |
-|---|---|
-| `pnpm dev` | Web + gateway in dev mode |
-| `pnpm dev:web` | Web only (Next.js) |
-| `pnpm dev:gateway` | Gateway only |
-| `pnpm build` | Build all packages |
-| `pnpm start` | Build web and start gateway |
-
-### Environment Variables
-
-| Variable | Required | Description |
-|---|---|---|
-| `WORKSPACE` | No | Agent working directory |
-| `ABLY_API_KEY` | No | Remote real-time channel |
-| `TELEGRAM_BOT_TOKENS` | No | One token per bot/agent (comma-separated) |
-| `WEB_DIR` | No | Override served web build directory |
-
-## Architecture
-
-```
-bit-office/
-├── apps/
-│   ├── web/            # Next.js PWA + PixiJS pixel office + control UI
-│   └── gateway/        # Runtime daemon: events, channels, policy, orchestration
-└── packages/
-    ├── orchestrator/   # Multi-agent execution engine
-    └── shared/         # Typed command/event contracts (Zod schemas)
-```
-
-**Channels**: WebSocket (always on), Ably (optional), Telegram (optional)
-
-## Tech Stack
-
-- **Frontend**: Next.js 15, React, PixiJS v8, Zustand
-- **Backend**: Node.js daemon, WebSocket
-- **Protocol**: Zod-validated event schemas
-- **Integrations**: Ably, Telegram, external process detection
-
-## Contributing
-
-Issues and PRs are welcome. If you're exploring AI-native dev tooling, workflows, or interfaces, Bit Office is a great playground for experiments.
-
-## Acknowledgments
-
-Pixel office art inspired by [pixel-agents](https://github.com/pablodelucca/pixel-agents) by [@pablodelucca](https://github.com/pablodelucca).
+Pixel office for AI agents and multi-agent collaboration
 
 ## License
 
-[MIT](LICENSE) - feel free to use, modify, and distribute.
+**Proprietary** — Copyright © 2024–2026 [BlackRoad OS, Inc.](https://blackroad.io) All rights reserved.
+
+Founder & CEO: **Alexa Louise Amundson** · Delaware C-Corp
+
+See [LICENSE](./LICENSE) for full terms.
 
 ---
 
 <div align="center">
 
-**If Bit Office helps your workflow, consider giving it a star!**
+**BlackRoad OS — Pave Tomorrow.**
+
+[blackroad.io](https://blackroad.io) · [GitHub](https://github.com/BlackRoad-OS-Inc) · [Brand](https://brand.blackroad.io)
 
 </div>
