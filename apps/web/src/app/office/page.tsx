@@ -1781,7 +1781,7 @@ function TeamActivityLog({ messages, agents, assetsReady, onClear }: {
         )}
       </div>
       {!collapsed && (
-        <div style={{ overflowY: "auto", padding: "0 8px", display: "flex", flexDirection: "column", gap: 4 }}>
+        <div style={{ overflowY: "auto", maxHeight: "30vh", padding: "0 8px", display: "flex", flexDirection: "column", gap: 4 }}>
           {messages.map((msg, i) => {
             if (!msg || !msg.fromAgentId) return null;
             return (
@@ -2087,6 +2087,8 @@ export default function OfficePage() {
   const [expandedSection, setExpandedSection] = useState<"team" | "agents" | "external">("agents");
   const [prompt, setPrompt] = useState("");
   const [pendingImages, setPendingImages] = useState<{ name: string; dataUrl: string; base64: string }[]>([]);
+  const pasteMapRef = useRef(new Map<string, string>()); // label → full text
+  const pasteCountRef = useRef(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Editor state
@@ -2281,19 +2283,33 @@ export default function OfficePage() {
   const selectedAgentState = selectedAgent ? agents.get(selectedAgent) : null;
   const isAgentBusy = selectedAgentState?.status === "working" || selectedAgentState?.status === "waiting_approval";
 
-  // Track streaming message text for auto-scroll
-  const lastMsgText = selectedAgentState?.messages?.length
-    ? selectedAgentState.messages[selectedAgentState.messages.length - 1]?.text?.length ?? 0
-    : 0;
-
+  // Auto-scroll: follow content growth unless user scrolled up
   useEffect(() => {
-      const el = chatEndRef.current;
-      if (!el) return;
-      const container = el.parentElement;
-      if (container) {
-        container.scrollTop = container.scrollHeight;
-      }
-  }, [selectedAgentState?.messages?.length, selectedAgentState?.status, lastMsgText, isAgentBusy]);
+    const el = chatEndRef.current;
+    if (!el) return;
+    const container = el.parentElement;
+    if (!container) return;
+    let userScrolledUp = false;
+    const scrollToBottom = () => {
+      if (!userScrolledUp) container.scrollTop = container.scrollHeight;
+    };
+    const onScroll = () => {
+      userScrolledUp = container.scrollHeight - container.scrollTop - container.clientHeight > 80;
+    };
+    // MutationObserver catches everything: new elements, text changes, typewriter reveals
+    let scrollRaf = 0;
+    const throttledScroll = () => {
+      if (!scrollRaf) scrollRaf = requestAnimationFrame(() => { scrollRaf = 0; scrollToBottom(); });
+    };
+    const observer = new MutationObserver(throttledScroll);
+    observer.observe(container, { childList: true, subtree: true, characterData: true });
+    container.addEventListener("scroll", onScroll);
+    scrollToBottom();
+    return () => {
+      container.removeEventListener("scroll", onScroll);
+      observer.disconnect();
+    };
+  }, [selectedAgent]);
 
   // Auto-select team lead when a team is first created
   useEffect(() => {
@@ -2426,6 +2442,23 @@ export default function OfficePage() {
     }
   }, [addImageFromFile]);
 
+  const handlePasteText = useCallback((e: React.ClipboardEvent<HTMLInputElement>) => {
+    const text = e.clipboardData?.getData("text/plain");
+    if (text) {
+      const lines = text.split("\n");
+      if (lines.length > 3 || text.length > 200) {
+        e.preventDefault();
+        pasteCountRef.current++;
+        const info = lines.length > 1 ? `+${lines.length} lines` : `${text.length} chars`;
+        const label = `[Pasted text #${pasteCountRef.current} ${info}]`;
+        pasteMapRef.current.set(label, text);
+        const input = e.currentTarget;
+        const pos = input.selectionStart ?? prompt.length;
+        setPrompt(prev => prev.slice(0, pos) + label + prev.slice(pos));
+      }
+    }
+  }, [prompt]);
+
   const handleDropImage = useCallback((e: React.DragEvent) => {
     const files = e.dataTransfer?.files;
     if (!files) return;
@@ -2458,17 +2491,18 @@ export default function OfficePage() {
       for (const p of paths) { if (p) imagePaths.push(p); }
     }
 
-    // Build prompt with image references
+    // Expand pasted text labels back to full content
     let finalPrompt = prompt.trim();
-    if (imagePaths.length > 0) {
-      const refs = imagePaths.map((p) => `[Attached image: ${p}]`).join("\n");
-      finalPrompt = finalPrompt ? `${refs}\n\n${finalPrompt}` : refs;
+    for (const [label, fullText] of pasteMapRef.current) {
+      finalPrompt = finalPrompt.replace(label, fullText);
     }
+    if (imagePaths.length > 0) {
+      finalPrompt += (finalPrompt ? "\n\n" : "") + imagePaths.map((p) => `[Attached image: ${p}]`).join("\n");
+    }
+    finalPrompt = finalPrompt.trim();
 
     const taskId = nanoid();
-    const displayText = pendingImages.length > 0
-      ? `${pendingImages.map((i) => `[Image: ${i.name}]`).join(" ")}${finalPrompt ? "\n" + prompt.trim() : ""}`
-      : finalPrompt;
+    const displayText = finalPrompt;
     addUserMessage(selectedAgent, taskId, displayText);
     const repoPath = agentWorkDirMap.get(selectedAgent);
     sendCommand({
@@ -2483,6 +2517,7 @@ export default function OfficePage() {
     });
     setPrompt("");
     setPendingImages([]);
+    pasteMapRef.current.clear();
   }, [selectedAgent, prompt, pendingImages, addUserMessage, agents]);
 
   const handleCancel = useCallback(() => {
@@ -3004,7 +3039,6 @@ export default function OfficePage() {
                       overflow: "hidden",
                     }}>
                       {/* CRT scanline bar */}
-                      <div className="crt-scanline-bar" />
                       {/* Messages */}
                       <div style={{
                         flex: 1, overflowY: "auto", padding: "8px 10px",
@@ -3196,6 +3230,7 @@ export default function OfficePage() {
                                   <span style={{ color: busy ? TERM_DIM : TERM_GREEN, fontSize: TERM_SIZE, fontFamily: TERM_FONT, padding: "6px 0 6px 8px", flexShrink: 0, textShadow: busy ? "none" : TERM_GLOW }}>&gt;</span>
                                   <input
                                     value={prompt}
+                                    onPaste={handlePasteText}
                                     onChange={(e) => setPrompt(e.target.value)}
                                     onKeyDown={(e) => {
                                       if (e.key === "Escape" && busy) { handleCancel(); return; }
@@ -3229,6 +3264,7 @@ export default function OfficePage() {
                                 <span style={{ color: TERM_DIM, fontSize: TERM_SIZE, fontFamily: TERM_FONT }}>&gt;</span>
                                 <input
                                   value={prompt}
+                                  onPaste={handlePasteText}
                                   onChange={(e) => setPrompt(e.target.value)}
                                   onKeyDown={(e) => e.key === "Enter" && !e.nativeEvent.isComposing && handleRunTask()}
                                   placeholder="or give feedback..."
@@ -3244,6 +3280,7 @@ export default function OfficePage() {
                                 <span style={{ color: TERM_DIM, fontSize: TERM_SIZE, fontFamily: TERM_FONT }}>&gt;</span>
                                 <input
                                   value={prompt}
+                                  onPaste={handlePasteText}
                                   onChange={(e) => setPrompt(e.target.value)}
                                   onKeyDown={(e) => e.key === "Enter" && !e.nativeEvent.isComposing && handleRunTask()}
                                   placeholder="request changes..."
@@ -3267,6 +3304,7 @@ export default function OfficePage() {
                                 <span style={{ color: isAgentBusy ? TERM_DIM : TERM_GREEN, fontSize: TERM_SIZE, fontFamily: TERM_FONT, padding: "6px 0 6px 8px", flexShrink: 0, textShadow: isAgentBusy ? "none" : TERM_GLOW }}>&gt;</span>
                                 <input
                                   value={prompt}
+                                  onPaste={handlePasteText}
                                   onChange={(e) => setPrompt(e.target.value)}
                                   onKeyDown={(e) => {
                                     if (e.key === "Escape" && isAgentBusy) { handleCancel(); return; }
@@ -3717,6 +3755,7 @@ export default function OfficePage() {
                       <div style={{ display: "flex", gap: 6 }}>
                         <input
                           value={prompt}
+                          onPaste={handlePasteText}
                           onChange={(e) => setPrompt(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && !e.nativeEvent.isComposing && handleRunTask()}
                           placeholder="Send a message..."
@@ -3759,6 +3798,7 @@ export default function OfficePage() {
                       <div style={{ display: "flex", gap: 6 }}>
                         <input
                           value={prompt}
+                          onPaste={handlePasteText}
                           onChange={(e) => setPrompt(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && !e.nativeEvent.isComposing && handleRunTask()}
                           placeholder="Or give feedback..."
@@ -3785,6 +3825,7 @@ export default function OfficePage() {
                       <div style={{ display: "flex", gap: 6 }}>
                         <input
                           value={prompt}
+                          onPaste={handlePasteText}
                           onChange={(e) => setPrompt(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && !e.nativeEvent.isComposing && handleRunTask()}
                           placeholder="Request changes..."
@@ -3826,6 +3867,7 @@ export default function OfficePage() {
                     <div style={{ display: "flex", gap: 6 }}>
                       <input
                         value={prompt}
+                        onPaste={handlePasteText}
                         onChange={(e) => setPrompt(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && !e.nativeEvent.isComposing && handleRunTask()}
                         placeholder="Send a message..."

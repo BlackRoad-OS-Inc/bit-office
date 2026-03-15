@@ -268,12 +268,19 @@ export class DelegationRouter {
         this.lastDevAgentId = target.agentId;
       }
 
-      // Create worktree for dev agents in team mode
+      // Create worktree for dev agents only when multiple devs work concurrently.
+      // Single dev doesn't need isolation, and worktrees break --resume (CWD changes).
       let effectiveRepoPath = repoPath;
-      if (this.worktreeEnabled && repoPath && !target.worktreePath) {
+      if (this.worktreeEnabled && repoPath && !target.worktreePath && !target.hasHistory) {
         const targetRole = target.role.toLowerCase();
         const isDevWorker = !targetRole.includes("review") && !targetRole.includes("lead");
-        if (isDevWorker) {
+        // Count active dev workers (excluding this target)
+        const activeDevs = this.agentManager.getAll().filter(a =>
+          a.agentId !== target.agentId && a.teamId === target.teamId
+          && !a.role.toLowerCase().includes("review") && !a.role.toLowerCase().includes("lead")
+          && (a.status === "working" || a.worktreePath)
+        );
+        if (isDevWorker && activeDevs.length > 0) {
           const wt = createWorktree(repoPath, target.agentId, taskId, target.name);
           if (wt) {
             const branch = `agent/${target.name.toLowerCase().replace(/\s+/g, "-")}/${taskId}`;

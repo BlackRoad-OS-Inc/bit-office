@@ -92,8 +92,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               to bottom,
               transparent 0px,
               transparent 1px,
-              rgba(0,0,0,0.15) 1px,
-              rgba(0,0,0,0.15) 2px
+              rgba(24,255,98,0.05) 1px,
+              rgba(24,255,98,0.05) 2px
             );
             pointer-events: none;
             z-index: 1;
@@ -105,7 +105,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             background: linear-gradient(
               to bottom,
               transparent 0%,
-              rgba(24,255,98,0.03) 50%,
+              rgba(24,255,98,0.05) 50%,
               transparent 100%
             );
             animation: crt-scanline 6s linear infinite;
