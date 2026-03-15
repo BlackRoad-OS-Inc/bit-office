@@ -38,6 +38,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             --term-text: #7a9a7a;
             --term-text-bright: #b8d0b0;
 
+            /* ── Alpha / glow variables ── */
+            --term-glow: 0 0 8px rgba(24,255,98,0.25);
+            --term-green-alpha-10: rgba(24,255,98,0.1);
+            --term-green-alpha-20: rgba(24,255,98,0.2);
+
             /* ── Legacy aliases (for components not yet migrated) ── */
             --px-bg-deep: var(--office-bg);
             --px-bg-panel: var(--office-panel);
@@ -97,8 +102,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             50%, 100% { opacity: 0; }
           }
           @keyframes msg-fadein {
-            from { opacity: 0; transform: translateY(4px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: translateY(6px) translateX(-4px); }
+            to { opacity: 1; transform: translateY(0) translateX(0); }
           }
           .crt-screen {
             position: relative;
@@ -111,9 +116,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             background: repeating-linear-gradient(
               to bottom,
               transparent 0px,
-              transparent 1px,
-              rgba(24,255,98,0.05) 1px,
-              rgba(24,255,98,0.05) 2px
+              transparent 3px,
+              rgba(24,255,98,0.04) 3px,
+              rgba(24,255,98,0.04) 4px
             );
             pointer-events: none;
             z-index: 1;
@@ -192,6 +197,31 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             0%, 100% { box-shadow: 0 0 0 0 rgba(200,155,48,0); }
             50% { box-shadow: 0 0 8px 2px rgba(200,155,48,0.25); }
           }
+          /* ── Dot-grid background ── */
+          .term-dotgrid {
+            background-image: radial-gradient(circle, rgba(24,255,98,0.07) 1px, transparent 1px);
+            background-size: 22px 22px;
+          }
+          /* ── Text rendering ── */
+          .crt-screen, .crt-screen * {
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            font-feature-settings: "liga" 1, "calt" 1;
+          }
+          /* ── Text selection ── */
+          .crt-screen ::selection { background: rgba(24,255,98,0.2); color: #b8d0b0; }
+          /* ── Input focus glow ── */
+          @keyframes input-glow {
+            0%,100% { box-shadow: 0 0 4px rgba(24,255,98,0.1); }
+            50% { box-shadow: 0 0 10px rgba(24,255,98,0.25); }
+          }
+          .term-input:focus { animation: input-glow 2s ease-in-out infinite; outline: none; }
+          /* ── Button click feedback ── */
+          .term-btn { transition: all 0.15s ease; }
+          .term-btn:active { transform: scale(0.97); }
+          /* ── Horizontal scroll for paths ── */
+          .term-path-scroll { overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+          .term-path-scroll::-webkit-scrollbar { display: none; }
         `}} />
         {children}
         <script

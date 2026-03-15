@@ -723,6 +723,8 @@ const TERM_SURFACE = "#0a0e0a";      // Cards / elevated
 const TERM_HOVER = "#0e1a0e";        // Hover state
 const TERM_BORDER = "#1a2a1a";       // Borders
 const TERM_BORDER_DIM = "#152515";   // Subtle borders
+const TERM_GLOW_BORDER = `0 0 6px ${TERM_GREEN}15, inset 0 0 6px ${TERM_GREEN}08`;
+const TERM_GLOW_FOCUS = `0 0 12px ${TERM_GREEN}30, 0 0 4px ${TERM_GREEN}20`;
 
 const DONE_VERBS = ["Brewed", "Crafted", "Forged", "Compiled", "Shipped", "Deployed", "Hacked", "Rendered", "Built", "Cooked"];
 function formatDuration(ms: number): string {
@@ -2854,7 +2856,7 @@ export default function OfficePage() {
                   padding: "0 5px",
                   height: 72,
                   border: "none", cursor: "pointer",
-                  background: active ? tab.color + "20" : "#0c1210",
+                  background: active ? tab.color + "20" : TERM_PANEL,
                   borderRadius: consoleMode ? "0 6px 6px 0" : "6px 0 0 6px",
                   borderTop: `1px solid ${active ? tab.color + "60" : TERM_BORDER}`,
                   borderBottom: `1px solid ${active ? tab.color + "60" : TERM_BORDER}`,
@@ -2863,7 +2865,7 @@ export default function OfficePage() {
                   color: active ? tab.color : "#5a5a5a",
                   fontSize: 13, fontFamily: TERM_FONT, fontWeight: 600,
                   letterSpacing: "0.1em",
-                  boxShadow: "2px 0 8px rgba(0,0,0,0.4)",
+                  boxShadow: active ? `0 2px 8px ${tab.color}15, inset 0 -4px 8px ${tab.color}08` : "2px 0 8px rgba(0,0,0,0.4)",
                   transition: "all 0.15s",
                 }}
                 onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = tab.color; }}
@@ -2881,7 +2883,7 @@ export default function OfficePage() {
               width: 28, height: 40, border: "none", cursor: "pointer",
               display: "flex", alignItems: "center", justifyContent: "center",
               padding: 0, marginTop: 4,
-              background: "#0c1210",
+              background: TERM_PANEL,
               borderRadius: consoleMode ? "0 10px 10px 0" : "10px 0 0 10px",
               borderTop: "1px solid #1a2a1a",
               borderBottom: "1px solid #1a2a1a",
@@ -2900,7 +2902,7 @@ export default function OfficePage() {
           </button>
         </div>
 
-        <div style={{
+        <div className="term-dotgrid" style={{
           width: consoleMode ? "100vw" : "min(50vw, 960px)",
           minWidth: 260,
           flexShrink: 0,
@@ -2908,7 +2910,7 @@ export default function OfficePage() {
           backgroundColor: TERM_PANEL,
           border: "none",
           borderLeft: consoleMode ? undefined : `1px solid ${TERM_GREEN}15`,
-          boxShadow: consoleMode ? "none" : `inset 1px 0 12px ${TERM_GREEN}06`,
+          boxShadow: consoleMode ? "none" : TERM_GLOW_BORDER,
           display: "flex",
           flexDirection: "row",
           overflow: "hidden",
@@ -2940,9 +2942,11 @@ export default function OfficePage() {
                     style={{
                       display: isExpanded ? "flex" : "none",
                       alignItems: "center", gap: 8,
-                      padding: "5px 12px",
-                      backgroundColor: TERM_SURFACE,
-                      borderBottom: `1px solid ${TERM_BORDER}`,
+                      padding: "3px 10px",
+                      background: "rgba(10,14,10,0.75)",
+                      backdropFilter: "blur(12px)",
+                      WebkitBackdropFilter: "blur(12px)",
+                      boxShadow: `0 1px 0 rgba(26,42,26,0.5), inset 0 1px 0 rgba(24,255,98,0.05)`,
                       fontSize: TERM_SIZE, fontFamily: TERM_FONT, color: TERM_DIM,
                       flexShrink: 0,
                     }}
@@ -2984,8 +2988,10 @@ export default function OfficePage() {
                       {/* Compact info header */}
                       <div style={{
                         padding: "8px 12px",
-                        borderBottom: `1px solid ${TERM_BORDER}`,
-                        backgroundColor: TERM_SURFACE,
+                        boxShadow: "0 1px 0 rgba(26,42,26,0.5)",
+                        background: "rgba(10,14,10,0.75)",
+                        backdropFilter: "blur(12px)",
+                        WebkitBackdropFilter: "blur(12px)",
                         flexShrink: 0,
                       }}>
                         <div style={{ fontSize: TERM_SIZE, color: TERM_GREEN, opacity: 0.6, marginBottom: 4, fontFamily: TERM_FONT, letterSpacing: "0.05em" }}>
@@ -2994,7 +3000,7 @@ export default function OfficePage() {
                         <div style={{ display: "flex", gap: 12, fontSize: TERM_SIZE, color: TERM_DIM, fontFamily: TERM_FONT, flexWrap: "wrap" }}>
                           <span>{agentState.backend ?? "unknown"}</span>
                           <span>PID {agentState.pid ?? "\u2014"}</span>
-                          <span title={agentState.cwd ?? undefined} style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 300 }}>
+                          <span className="term-path-scroll" title={agentState.cwd ?? undefined} style={{ maxWidth: 300 }}>
                             {agentState.cwd ?? "\u2014"}
                           </span>
                         </div>
@@ -3039,13 +3045,13 @@ export default function OfficePage() {
                       flex: 1,
                       display: "flex",
                       flexDirection: "column",
-                      backgroundColor: "#050808",
+                      backgroundColor: TERM_BG,
                       minHeight: 0,
                       overflow: "hidden",
                     }}>
                       {/* CRT scanline bar */}
                       {/* Messages */}
-                      <div style={{
+                      <div className="term-dotgrid" style={{
                         flex: 1, overflowY: "auto", padding: "8px 10px",
                         display: "flex", flexDirection: "column",
                         minHeight: 0,
@@ -3066,6 +3072,8 @@ export default function OfficePage() {
                             <div style={{
                               padding: "6px 10px", marginBottom: 8,
                               backgroundColor: info.color + "10",
+                              backdropFilter: "blur(6px)",
+                              WebkitBackdropFilter: "blur(6px)",
                               border: `1px solid ${info.color}30`,
                               display: "flex", alignItems: "center", gap: 6,
                               fontSize: 12, fontFamily: "monospace",
@@ -3103,10 +3111,12 @@ export default function OfficePage() {
                             {isOwner && (
                               <div style={{ display: "flex", gap: 6 }}>
                                 <button
+                                  className="term-btn"
                                   onClick={() => handleApproval(agentState.pendingApproval!.approvalId, "yes")}
                                   style={{ flex: 1, padding: "8px", border: "1px solid #48cc6a", backgroundColor: "#143a14", color: "#48cc6a", cursor: "pointer", fontWeight: "bold", fontSize: 12, fontFamily: "monospace" }}
                                 >{"\u25B6"} Approve</button>
                                 <button
+                                  className="term-btn"
                                   onClick={() => handleApproval(agentState.pendingApproval!.approvalId, "no")}
                                   style={{ flex: 1, padding: "8px", border: "1px solid #e04848", backgroundColor: "#3e1818", color: "#e04848", cursor: "pointer", fontWeight: "bold", fontSize: 12, fontFamily: "monospace" }}
                                 >{"\u2715"} Reject</button>
@@ -3188,7 +3198,10 @@ export default function OfficePage() {
                           return (
                             <div style={{
                               padding: "8px 10px", borderTop: "1px solid #152515",
-                              backgroundColor: TERM_SURFACE, flexShrink: 0,
+                              background: "rgba(10,14,10,0.8)",
+                              backdropFilter: "blur(8px)",
+                              WebkitBackdropFilter: "blur(8px)",
+                              flexShrink: 0,
                             }}>
                               <div style={{ display: "flex", gap: 6 }}>
                                 <input
@@ -3221,7 +3234,10 @@ export default function OfficePage() {
                         return (
                           <div style={{
                             padding: "8px 10px", borderTop: "1px solid #152515",
-                            backgroundColor: TERM_SURFACE, flexShrink: 0,
+                            background: "rgba(10,14,10,0.8)",
+                            backdropFilter: "blur(8px)",
+                            WebkitBackdropFilter: "blur(8px)",
+                            flexShrink: 0,
                           }}>
                             {isTeamMember ? (
                               <div style={{
@@ -3234,6 +3250,7 @@ export default function OfficePage() {
                                 <div style={{ display: "flex", gap: 0, alignItems: "center", borderTop: "none" }}>
                                   <span style={{ color: busy ? TERM_DIM : TERM_GREEN, fontSize: TERM_SIZE, fontFamily: TERM_FONT, padding: "6px 0 6px 8px", flexShrink: 0, textShadow: busy ? "none" : TERM_GLOW }}>&gt;</span>
                                   <input
+                                    className="term-input"
                                     value={prompt}
                                     onPaste={handlePasteText}
                                     onChange={(e) => setPrompt(e.target.value)}
@@ -3259,6 +3276,7 @@ export default function OfficePage() {
                             ) : cardPhase === "design" && !busy ? (
                               <div style={{ display: "flex", gap: 6, alignItems: "center", borderTop: "none", padding: "4px 8px" }}>
                                 <button
+                                  className="term-btn"
                                   onClick={handleApprovePlan}
                                   style={{
                                     padding: "5px 14px", border: `1px solid ${TERM_GREEN}60`,
@@ -3268,6 +3286,7 @@ export default function OfficePage() {
                                 >approve</button>
                                 <span style={{ color: TERM_DIM, fontSize: TERM_SIZE, fontFamily: TERM_FONT }}>&gt;</span>
                                 <input
+                                  className="term-input"
                                   value={prompt}
                                   onPaste={handlePasteText}
                                   onChange={(e) => setPrompt(e.target.value)}
@@ -3284,6 +3303,7 @@ export default function OfficePage() {
                               <div style={{ display: "flex", gap: 6, alignItems: "center", borderTop: "none", padding: "4px 8px" }}>
                                 <span style={{ color: TERM_DIM, fontSize: TERM_SIZE, fontFamily: TERM_FONT }}>&gt;</span>
                                 <input
+                                  className="term-input"
                                   value={prompt}
                                   onPaste={handlePasteText}
                                   onChange={(e) => setPrompt(e.target.value)}
@@ -3308,6 +3328,7 @@ export default function OfficePage() {
                               <div style={{ display: "flex", gap: 0, alignItems: "center", borderTop: "none" }}>
                                 <span style={{ color: isAgentBusy ? TERM_DIM : TERM_GREEN, fontSize: TERM_SIZE, fontFamily: TERM_FONT, padding: "6px 0 6px 8px", flexShrink: 0, textShadow: isAgentBusy ? "none" : TERM_GLOW }}>&gt;</span>
                                 <input
+                                  className="term-input"
                                   value={prompt}
                                   onPaste={handlePasteText}
                                   onChange={(e) => setPrompt(e.target.value)}
@@ -3348,8 +3369,11 @@ export default function OfficePage() {
             <div style={{
               display: "flex", alignItems: "center", gap: 10,
               padding: "8px 12px", minHeight: 52,
-              borderBottom: `1px solid ${TERM_BORDER}`,
-              backgroundColor: TERM_SURFACE,
+              borderBottom: `1px solid ${TERM_BORDER_DIM}`,
+              background: "rgba(10,14,10,0.75)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              boxShadow: `0 1px 0 rgba(26,42,26,0.5), inset 0 1px 0 rgba(24,255,98,0.05)`,
               overflowX: "auto", overflowY: "hidden",
               scrollbarWidth: "none",
             }}>
@@ -3377,6 +3401,7 @@ export default function OfficePage() {
                       borderRadius: "4px 4px 0 0",
                       flexShrink: 0, position: "relative",
                       transition: "all 0.15s",
+                      boxShadow: isActive ? `0 2px 8px ${TERM_GREEN}15, inset 0 -4px 8px ${TERM_GREEN}08` : "none",
                     }}
                     onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = `${TERM_GREEN}05`; }}
                     onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = "transparent"; }}
@@ -3623,6 +3648,8 @@ export default function OfficePage() {
                   <div style={{
                     padding: "5px 8px", marginBottom: 8,
                     backgroundColor: info.color + "10",
+                    backdropFilter: "blur(6px)",
+                    WebkitBackdropFilter: "blur(6px)",
                     border: `1px solid ${info.color}30`,
                     display: "flex", alignItems: "center", gap: 6,
                     fontSize: 11, fontFamily: "monospace",
