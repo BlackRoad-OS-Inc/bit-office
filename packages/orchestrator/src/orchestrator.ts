@@ -601,17 +601,27 @@ export class Orchestrator extends EventEmitter<OrchestratorEventMap> {
       }
     }
 
-    // Solo agent worktree: keep alive for session continuity (--resume needs same CWD).
-    // Merge + cleanup only happens on agent fire/cancel, not on task completion.
+    // Solo agent worktree: auto-commit + merge to main on task completion, but KEEP worktree alive
+    // (--resume needs same CWD, so don't delete the worktree directory).
     // Team agent worktrees are handled in delegation.ts (different lifecycle).
     if (event.type === "task:done") {
       const session = this.agentManager.get(agentId);
       if (session?.worktreePath && session.worktreeBranch && !session.teamId) {
-        // Just commit changes so they're not lost, but keep the worktree alive
         try {
           const { execSync } = require("child_process");
-          execSync("git add -A && git diff --cached --quiet || git commit -m 'auto-save'", { cwd: session.worktreePath, stdio: "pipe", timeout: 5000 });
-        } catch { /* no changes to commit, or git error — ignore */ }
+          const base = require("path").resolve(session.worktreePath, "../..");
+          // Commit any uncommitted changes
+          try { execSync("git add -A && git diff --cached --quiet || git commit -m 'auto-save'", { cwd: session.worktreePath, stdio: "pipe", timeout: 5000 }); } catch { /* ignore */ }
+          // Merge branch into main (but keep worktree + branch alive)
+          try {
+            execSync(`git merge --no-ff "${session.worktreeBranch}" -m "merge ${session.name}"`, { cwd: base, stdio: "pipe", timeout: 5000 });
+            console.log(`[Worktree] Auto-merged ${session.worktreeBranch} to main (worktree kept alive)`);
+          } catch {
+            console.log(`[Worktree] Auto-merge failed for ${session.worktreeBranch} (conflict or no changes)`);
+          }
+        } catch (err) {
+          console.error(`[Worktree] Auto-save/merge failed:`, err);
+        }
       }
 
       this.retryTracker?.clear(event.taskId);
